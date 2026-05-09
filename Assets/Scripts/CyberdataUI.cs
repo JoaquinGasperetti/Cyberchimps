@@ -6,24 +6,25 @@ public class CyberdataUI : MonoBehaviour
     [SerializeField] private TMP_Text cyberdataText;
     [SerializeField] private TMP_Text globalText;
 
-    private void OnEnable()
+    private void Start()
     {
+        // Al hacerlo en el Start, nos aseguramos de que el Awake 
+        // del CyberdataManager ya se ejecutó y la Instance existe.
         if (CyberdataManager.Instance != null)
         {
             CyberdataManager.Instance.OnCyberdataChanged += UpdateUI;
-            UpdateUI();
+            UpdateUI(); // Actualiza los textos por primera vez al cargar
         }
     }
 
-    private void Start()
+    private void OnDestroy()
     {
-        UpdateUI();
-    }
-
-    private void OnDisable()
-    {
+        // Es buena práctica desuscribirse al destruirse, 
+        // en lugar de OnDisable, para evitar errores al cambiar de escena.
         if (CyberdataManager.Instance != null)
+        {
             CyberdataManager.Instance.OnCyberdataChanged -= UpdateUI;
+        }
     }
 
     private void UpdateUI()
