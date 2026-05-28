@@ -8,19 +8,15 @@ public class CyberdataUI : MonoBehaviour
 
     private void Start()
     {
-        // Al hacerlo en el Start, nos aseguramos de que el Awake 
-        // del CyberdataManager ya se ejecutó y la Instance existe.
         if (CyberdataManager.Instance != null)
         {
             CyberdataManager.Instance.OnCyberdataChanged += UpdateUI;
-            UpdateUI(); // Actualiza los textos por primera vez al cargar
+            UpdateUI(); // Actualiza los textos x las dudas
         }
     }
 
     private void OnDestroy()
     {
-        // Es buena práctica desuscribirse al destruirse, 
-        // en lugar de OnDisable, para evitar errores al cambiar de escena.
         if (CyberdataManager.Instance != null)
         {
             CyberdataManager.Instance.OnCyberdataChanged -= UpdateUI;
