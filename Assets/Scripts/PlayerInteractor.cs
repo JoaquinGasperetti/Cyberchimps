@@ -14,6 +14,10 @@ public class PlayerInteractor : MonoBehaviour
 
     public bool IsPushing { get; private set; }
 
+    // --- AQUÍ ESTÁ LA LÍNEA QUE FALTABA ---
+    // Esto le avisa al Animator si el personaje tiene un objeto en las manos
+    public bool IsHolding => heldInteractable != null;
+
     public Transform HoldPoint => holdPoint;
     public Camera MainCamera => mainCamera;
     public Vector2 MoveInput => input.MoveInput;
