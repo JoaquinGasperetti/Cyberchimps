@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GoalZone : MonoBehaviour
 {
@@ -13,12 +14,14 @@ public class GoalZone : MonoBehaviour
         {
             completed = true;
 
-            if (LevelTimer.Instance != null)
+            if (LevelManager.Instance != null)
             {
-                LevelTimer.Instance.StopTimer();
+                LevelManager.Instance.CompleteLevel();
             }
 
             Debug.Log("META ALCANZADA");
         }
     }
+   
+
 }

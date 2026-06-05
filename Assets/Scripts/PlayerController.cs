@@ -24,6 +24,8 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (!LevelManager.Instance.CanPlay)
+            return;
         CheckGround();
         HandleJump();
         UpdateAnimator();
@@ -36,6 +38,8 @@ public class PlayerController : MonoBehaviour
 
     private void Move()
     {
+        if (!LevelManager.Instance.CanPlay)
+            return;
         if (interactor != null && interactor.IsPushing)
             return;
 
@@ -56,6 +60,8 @@ public class PlayerController : MonoBehaviour
 
     private void HandleJump()
     {
+        if (!LevelManager.Instance.CanPlay)
+            return;
         if (interactor != null && interactor.IsPushing)
             return;
 
