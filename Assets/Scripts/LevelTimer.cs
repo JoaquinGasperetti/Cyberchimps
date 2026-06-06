@@ -1,77 +1,71 @@
 using UnityEngine;
 using TMPro;
+using Unity.Netcode;
 
-public class LevelTimer : MonoBehaviour
+public class LevelTimer : NetworkBehaviour
 {
     public static LevelTimer Instance { get; private set; }
 
     [SerializeField] private TMP_Text timerText;
 
-    private float currentTime;
-    private bool isRunning;
+    private NetworkVariable<float> currentTime = new NetworkVariable<float>(
+        0f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
-    public float CurrentTime => currentTime;
-    public bool IsRunning => isRunning;
+    private NetworkVariable<bool> isRunning = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    public float CurrentTime => currentTime.Value;
+    public bool IsRunning => isRunning.Value;
 
     private void Awake()
     {
-        // Singleton simple
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance == null) Instance = this;
+        else { Destroy(gameObject); return; }
     }
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
-        StartTimer();
+        if (IsServer)
+        {
+            currentTime.Value = 0f;
+            isRunning.Value = true;
+        }
+
+        currentTime.OnValueChanged += (_, __) => UpdateUI();
+        UpdateUI();
     }
 
     private void Update()
     {
-        if (!isRunning)
-            return;
-
-        currentTime += Time.deltaTime;
-
-        UpdateUI();
-    }
-
-    public void StartTimer()
-    {
-        currentTime = 0f;
-        isRunning = true;
+        if (!IsServer || !isRunning.Value) return;
+        currentTime.Value += Time.deltaTime;
     }
 
     public void StopTimer()
     {
-        isRunning = false;
-
+        if (!IsServer) return;
+        isRunning.Value = false;
         Debug.Log("Nivel completado en: " + GetFormattedTime());
     }
 
     private void UpdateUI()
     {
         if (timerText != null)
-        {
             timerText.text = GetFormattedTime();
-        }
     }
 
     public string GetFormattedTime()
     {
-        int minutes = Mathf.FloorToInt(currentTime / 60f);
-        int seconds = Mathf.FloorToInt(currentTime % 60f);
-        int milliseconds = Mathf.FloorToInt((currentTime * 100f) % 100f);
-
-        return string.Format("{0:00}:{1:00}:{2:00}",
-            minutes,
-            seconds,
-            milliseconds);
+        float t = currentTime.Value;
+        int min = Mathf.FloorToInt(t / 60f);
+        int sec = Mathf.FloorToInt(t % 60f);
+        int ms  = Mathf.FloorToInt((t * 100f) % 100f);
+        return string.Format("{0:00}:{1:00}:{2:00}", min, sec, ms);
     }
 }

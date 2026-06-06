@@ -1,6 +1,7 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class PlayerInteractor : MonoBehaviour
+public class PlayerInteractor : NetworkBehaviour
 {
     [SerializeField] private float interactionRadius = 2f;
     [SerializeField] private LayerMask interactableMask;
@@ -16,36 +17,45 @@ public class PlayerInteractor : MonoBehaviour
 
     public Transform HoldPoint => holdPoint;
     public Camera MainCamera => mainCamera;
-    public Vector2 MoveInput => input.MoveInput;
+    public Vector2 MoveInput => input != null ? input.MoveInput : Vector2.zero;
 
     private void Awake()
     {
         input = GetComponent<PlayerInputHandler>();
-        mainCamera = Camera.main;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsOwner)
+        {
+            // Buscamos la cámara principal una vez spawneado,
+            // así evitamos agarrar la cámara del jugador equivocado
+            mainCamera = Camera.main;
+        }
+        else
+        {
+            enabled = false;
+        }
     }
 
     private void Update()
     {
-        if (!input.ActionPressedThisFrame)
-            return;
+        if (!IsOwner) return;
+        if (input == null || !input.ActionPressedThisFrame) return;
 
-        // Si está agarrando algo → usarlo (throw)
         if (heldInteractable != null)
         {
             heldInteractable.Interact(this);
             return;
         }
 
-        // Si está empujando → salir
         if (IsPushing && activePushable != null)
         {
             activePushable.Interact(this);
             return;
         }
 
-        // Buscar interactuable cercano
         ActionInteractable target = FindBestInteractable();
-
         if (target != null)
         {
             target.Interact(this);
@@ -54,6 +64,8 @@ public class PlayerInteractor : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (!IsOwner) return;
+
         if (IsPushing && activePushable != null)
         {
             activePushable.ApplyPush(input.MoveInput, mainCamera);
@@ -70,9 +82,7 @@ public class PlayerInteractor : MonoBehaviour
         foreach (var hit in hits)
         {
             ActionInteractable interactable = hit.GetComponentInParent<ActionInteractable>();
-
-            if (interactable == null || !interactable.CanInteract(this))
-                continue;
+            if (interactable == null || !interactable.CanInteract(this)) continue;
 
             float distance = Vector3.Distance(transform.position, hit.ClosestPoint(transform.position));
             float score = interactable.Priority * 10f - distance;
@@ -91,7 +101,6 @@ public class PlayerInteractor : MonoBehaviour
     {
         IsPushing = true;
         activePushable = pushable;
-
         transform.position = snapPosition;
     }
 

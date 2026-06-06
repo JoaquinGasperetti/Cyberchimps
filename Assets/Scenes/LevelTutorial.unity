@@ -274,6 +274,7 @@ GameObject:
   - component: {fileID: 114946508}
   - component: {fileID: 114946507}
   - component: {fileID: 114946511}
+  - component: {fileID: 114946512}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -383,6 +384,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CyberdataUI
   cyberdataText: {fileID: 241896192}
   globalText: {fileID: 1609553286}
+--- !u!114 &114946512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 114946506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b4d35d16c22e7944825f8756cf5f351, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MobileUIConnector
 --- !u!1 &140770064
 GameObject:
   m_ObjectHideFlags: 0
@@ -1143,9 +1156,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: PlayerInputHandler, Assembly-CSharp
-        m_MethodName: TriggerAction
+      - m_Target: {fileID: 114946512}
+        m_TargetAssemblyTypeName: MobileUIConnector, Assembly-CSharp
+        m_MethodName: OnActionPressed
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1528,6 +1541,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8bb387c25cea1349af2b272f136d6c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelTimer
+  ShowTopMostFoldoutHeaderGroup: 1
   timerText: {fileID: 778122883}
 --- !u!1 &827511155
 GameObject:
@@ -2118,9 +2132,9 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: PlayerInputHandler, Assembly-CSharp
-          m_MethodName: MobileJumpDown
+        - m_Target: {fileID: 114946512}
+          m_TargetAssemblyTypeName: MobileUIConnector, Assembly-CSharp
+          m_MethodName: OnJumpDown
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -2134,9 +2148,9 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
-          m_TargetAssemblyTypeName: PlayerInputHandler, Assembly-CSharp
-          m_MethodName: MobileJumpUp
+        - m_Target: {fileID: 114946512}
+          m_TargetAssemblyTypeName: MobileUIConnector, Assembly-CSharp
+          m_MethodName: OnJumpUp
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -2347,6 +2361,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: PushCube (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 1678889155829276015, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1388568566
+      objectReference: {fileID: 0}
+    - target: {fileID: 1678889155829276015, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1678889155829276015, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1827202169
+      objectReference: {fileID: 0}
     - target: {fileID: 3517953931999710132, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2.2459605
@@ -2541,6 +2567,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: PushCube (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 1678889155829276015, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2933008804
+      objectReference: {fileID: 0}
+    - target: {fileID: 1678889155829276015, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1678889155829276015, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1827202169
+      objectReference: {fileID: 0}
     - target: {fileID: 3517953931999710132, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6.3427353
@@ -2631,6 +2669,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa669ae5355f3614d86b88cdabd35156, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoalZone
+  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!65 &1763762344
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2696,9 +2735,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77cdfaa595fbe9c45ab57e2974b133b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CyberdataManager
+  ShowTopMostFoldoutHeaderGroup: 1
   globalCyberdata: 0
-  levelCyberdataCollected: 0
-  levelCyberdataTotal: 15
 --- !u!1001 &4349772446859864647
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2707,6 +2745,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 800147539013158031, guid: a9ac727c300437446b2b97e8876ff88e, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3291429712
+      objectReference: {fileID: 0}
+    - target: {fileID: 800147539013158031, guid: a9ac727c300437446b2b97e8876ff88e, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 800147539013158031, guid: a9ac727c300437446b2b97e8876ff88e, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 2369775386
+      objectReference: {fileID: 0}
     - target: {fileID: 4126348764271984009, guid: a9ac727c300437446b2b97e8876ff88e, type: 3}
       propertyPath: m_Name
       value: Cyberdato
@@ -2767,6 +2817,18 @@ PrefabInstance:
     - target: {fileID: 1519119913808464544, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
       propertyPath: m_Name
       value: PushCube
+      objectReference: {fileID: 0}
+    - target: {fileID: 1678889155829276015, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2771608695
+      objectReference: {fileID: 0}
+    - target: {fileID: 1678889155829276015, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1678889155829276015, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1827202169
       objectReference: {fileID: 0}
     - target: {fileID: 3517953931999710132, guid: 804922d1105927a4f99f2a6b31831789, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2865,6 +2927,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7852724553334557456, guid: 313717607472ad64cb875639597f9cc8, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3478315600
+      objectReference: {fileID: 0}
+    - target: {fileID: 7852724553334557456, guid: 313717607472ad64cb875639597f9cc8, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7852724553334557456, guid: 313717607472ad64cb875639597f9cc8, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 2783880151
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2878,9 +2952,33 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2141717085339365642, guid: db9fc9e832be347448e899c0abb07e9c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1758842265
+      objectReference: {fileID: 0}
+    - target: {fileID: 2141717085339365642, guid: db9fc9e832be347448e899c0abb07e9c, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2141717085339365642, guid: db9fc9e832be347448e899c0abb07e9c, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1134582568
+      objectReference: {fileID: 0}
     - target: {fileID: 3633872812054984545, guid: db9fc9e832be347448e899c0abb07e9c, type: 3}
       propertyPath: m_Name
       value: DoorPivot
+      objectReference: {fileID: 0}
+    - target: {fileID: 4697963471045143039, guid: db9fc9e832be347448e899c0abb07e9c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 601772336
+      objectReference: {fileID: 0}
+    - target: {fileID: 4697963471045143039, guid: db9fc9e832be347448e899c0abb07e9c, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4697963471045143039, guid: db9fc9e832be347448e899c0abb07e9c, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1134582568
       objectReference: {fileID: 0}
     - target: {fileID: 6840736393252323731, guid: db9fc9e832be347448e899c0abb07e9c, type: 3}
       propertyPath: m_LocalPosition.x

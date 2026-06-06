@@ -1,55 +1,65 @@
 using System;
 using UnityEngine;
+using Unity.Netcode;
 
-public class CyberdataManager : MonoBehaviour
+public class CyberdataManager : NetworkBehaviour
 {
     public static CyberdataManager Instance { get; private set; }
 
     [Header("Global")]
     [SerializeField] private int globalCyberdata = 0;
 
-    [Header("Nivel actual")]
-    [SerializeField] private int levelCyberdataCollected = 0;
-    [SerializeField] private int levelCyberdataTotal = 0;
+    private NetworkVariable<int> levelCollected = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    private NetworkVariable<int> levelTotal = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
     public event Action OnCyberdataChanged;
 
-    public int GlobalCyberdata => globalCyberdata;
-    public int LevelCyberdataCollected => levelCyberdataCollected;
-    public int LevelCyberdataTotal => levelCyberdataTotal;
+    public int GlobalCyberdata  => globalCyberdata;
+    public int LevelCyberdataCollected => levelCollected.Value;
+    public int LevelCyberdataTotal     => levelTotal.Value;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
 
-    public void StartLevel(int totalCyberdata)
+    public override void OnNetworkSpawn()
     {
-        levelCyberdataTotal = totalCyberdata;
-        levelCyberdataCollected = 0;
-        OnCyberdataChanged?.Invoke();
+        levelCollected.OnValueChanged += (_, __) => OnCyberdataChanged?.Invoke();
+        levelTotal.OnValueChanged     += (_, __) => OnCyberdataChanged?.Invoke();
     }
 
+    public void StartLevel(int totalCyberdata)
+    {
+        if (!IsServer) return;
+        levelTotal.Value     = totalCyberdata;
+        levelCollected.Value = 0;
+    }
+
+    // Llamado desde el ClientRpc de CyberdataCollectible — solo el servidor modifica el valor
     public void CollectCyberdata()
     {
-        if (levelCyberdataCollected >= levelCyberdataTotal)
-            return;
-
-        levelCyberdataCollected++;
-        OnCyberdataChanged?.Invoke();
+        if (!IsServer) return;
+        if (levelCollected.Value >= levelTotal.Value) return;
+        levelCollected.Value++;
     }
 
     public void CompleteLevel()
     {
-        globalCyberdata += levelCyberdataCollected;
-        levelCyberdataCollected = 0;
+        if (!IsServer) return;
+        globalCyberdata      += levelCollected.Value;
+        levelCollected.Value  = 0;
         OnCyberdataChanged?.Invoke();
     }
 }

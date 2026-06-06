@@ -22,14 +22,28 @@ public class PlayerController : NetworkBehaviour
         interactor = GetComponent<PlayerInteractor>();
     }
 
+    public override void OnNetworkSpawn()
+    {
+        if (!IsOwner)
+        {
+            // El NetworkTransform maneja la posición del jugador remoto.
+            // Ponemos el Rigidbody en kinematic para que no interfiera.
+            rb.isKinematic = true;
+        }
+    }
+
     private void Update()
     {
+        if (!IsOwner) return;
+
         CheckGround();
         HandleJump();
     }
 
     private void FixedUpdate()
     {
+        if (!IsOwner) return;
+
         Move();
     }
 
