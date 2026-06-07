@@ -8,30 +8,23 @@ using Unity.Services.Core;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private MultiplayerUI m_multiplayerUI;
 
-    // Máximo 2 jugadores (host + 1 cliente)
     private const int MaxConnections = 1;
 
     private async void Start()
     {
-        // Inicializar Unity Gaming Services
         await InitializeUGS();
 
         if (m_multiplayerUI == null) return;
 
-        m_multiplayerUI.OnStartHost       += () => _ = StartHostWithRelay();
-        m_multiplayerUI.OnStartClient     += () => _ = StartClientWithRelay();
+        m_multiplayerUI.OnStartHost += () => _ = StartHostWithRelay();
+        m_multiplayerUI.OnStartClient += () => _ = StartClientWithRelay();
         m_multiplayerUI.OnDiconnectClient += Disconnect;
     }
-
-    // -------------------------------------------------------
-    // INICIALIZACIÓN
-    // -------------------------------------------------------
 
     private async Task InitializeUGS()
     {
@@ -50,33 +43,23 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // -------------------------------------------------------
-    // HOST
-    // -------------------------------------------------------
-
     private async Task StartHostWithRelay()
     {
         m_multiplayerUI.DisableButtons();
 
         try
         {
-            // Crear asignación Relay para 1 cliente
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(MaxConnections);
-
-            // Obtener el Join Code que el cliente necesita
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
             Debug.Log($"[GameManager] Join Code: {joinCode}");
-
-            // Mostrar el código en la UI
             m_multiplayerUI.ShowJoinCode(joinCode);
 
-            // Configurar el transport con los datos de Relay
+            // API nueva: AllocationUtils en lugar del constructor directo
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            transport.SetRelayServerData(new RelayServerData(allocation, "dtls"));
+            transport.SetRelayServerData(AllocationUtils.ToRelayServerData(allocation, "dtls"));
 
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
-
             NetworkManager.Singleton.StartHost();
 
             Debug.Log("[GameManager] Host iniciado con Relay.");
@@ -87,10 +70,6 @@ public class GameManager : MonoBehaviour
             m_multiplayerUI.EnableButtons();
         }
     }
-
-    // -------------------------------------------------------
-    // CLIENTE
-    // -------------------------------------------------------
 
     private async Task StartClientWithRelay()
     {
@@ -106,15 +85,12 @@ public class GameManager : MonoBehaviour
 
         try
         {
-            // Unirse a la asignación Relay usando el código
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode.Trim().ToUpper());
 
-            // Configurar el transport con los datos de Relay
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            transport.SetRelayServerData(new RelayServerData(joinAllocation, "dtls"));
+            transport.SetRelayServerData(AllocationUtils.ToRelayServerData(joinAllocation, "dtls"));
 
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
-
             NetworkManager.Singleton.StartClient();
 
             Debug.Log("[GameManager] Cliente conectado con Relay.");
@@ -125,10 +101,6 @@ public class GameManager : MonoBehaviour
             m_multiplayerUI.EnableButtons();
         }
     }
-
-    // -------------------------------------------------------
-    // DESCONEXIÓN
-    // -------------------------------------------------------
 
     private void Disconnect()
     {
