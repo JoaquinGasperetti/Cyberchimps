@@ -1,54 +1,142 @@
+using System;
+using System.Threading.Tasks;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
+using Unity.Networking.Transport.Relay;
+using Unity.Services.Authentication;
+using Unity.Services.Core;
+using Unity.Services.Relay;
+using Unity.Services.Relay.Models;
 using UnityEngine;
+using UnityEngine.UIElements;
 
-public class GameManager : NetworkBehaviour
+public class GameManager : MonoBehaviour
 {
     [SerializeField] private MultiplayerUI m_multiplayerUI;
 
-    private void Start()
+    // Máximo 2 jugadores (host + 1 cliente)
+    private const int MaxConnections = 1;
+
+    private async void Start()
     {
+        // Inicializar Unity Gaming Services
+        await InitializeUGS();
+
         if (m_multiplayerUI == null) return;
 
-        m_multiplayerUI.OnStartHost      += StartHost;
-        m_multiplayerUI.OnStartClient    += StartClient;
-        m_multiplayerUI.OnDiconnectClient += DisconnectClient;
+        m_multiplayerUI.OnStartHost       += () => _ = StartHostWithRelay();
+        m_multiplayerUI.OnStartClient     += () => _ = StartClientWithRelay();
+        m_multiplayerUI.OnDiconnectClient += Disconnect;
     }
 
-    private void StartHost()
+    // -------------------------------------------------------
+    // INICIALIZACIÓN
+    // -------------------------------------------------------
+
+    private async Task InitializeUGS()
+    {
+        try
+        {
+            await UnityServices.InitializeAsync();
+
+            if (!AuthenticationService.Instance.IsSignedIn)
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+            Debug.Log($"[GameManager] UGS listo. PlayerID: {AuthenticationService.Instance.PlayerId}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[GameManager] Error inicializando UGS: {e.Message}");
+        }
+    }
+
+    // -------------------------------------------------------
+    // HOST
+    // -------------------------------------------------------
+
+    private async Task StartHostWithRelay()
     {
         m_multiplayerUI.DisableButtons();
 
-        NetworkManager.Singleton.OnClientConnectedCallback  += OnClientConnected;
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+        try
+        {
+            // Crear asignación Relay para 1 cliente
+            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(MaxConnections);
 
-        NetworkManager.Singleton.StartHost();
-        Debug.Log("[GameManager] Host iniciado.");
+            // Obtener el Join Code que el cliente necesita
+            string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+
+            Debug.Log($"[GameManager] Join Code: {joinCode}");
+
+            // Mostrar el código en la UI
+            m_multiplayerUI.ShowJoinCode(joinCode);
+
+            // Configurar el transport con los datos de Relay
+            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            transport.SetRelayServerData(new RelayServerData(allocation, "dtls"));
+
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+
+            NetworkManager.Singleton.StartHost();
+
+            Debug.Log("[GameManager] Host iniciado con Relay.");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[GameManager] Error iniciando host: {e.Message}");
+            m_multiplayerUI.EnableButtons();
+        }
     }
 
-    private void StartClient()
+    // -------------------------------------------------------
+    // CLIENTE
+    // -------------------------------------------------------
+
+    private async Task StartClientWithRelay()
     {
+        string joinCode = m_multiplayerUI.GetJoinCodeInput();
+
+        if (string.IsNullOrWhiteSpace(joinCode))
+        {
+            Debug.LogWarning("[GameManager] Ingresá el Join Code antes de conectarte.");
+            return;
+        }
+
         m_multiplayerUI.DisableButtons();
 
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+        try
+        {
+            // Unirse a la asignación Relay usando el código
+            JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode.Trim().ToUpper());
 
-        NetworkManager.Singleton.StartClient();
-        Debug.Log("[GameManager] Conectando como cliente...");
+            // Configurar el transport con los datos de Relay
+            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            transport.SetRelayServerData(new RelayServerData(joinAllocation, "dtls"));
+
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+
+            NetworkManager.Singleton.StartClient();
+
+            Debug.Log("[GameManager] Cliente conectado con Relay.");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[GameManager] Error conectando cliente: {e.Message}");
+            m_multiplayerUI.EnableButtons();
+        }
     }
 
-    private void DisconnectClient()
+    // -------------------------------------------------------
+    // DESCONEXIÓN
+    // -------------------------------------------------------
+
+    private void Disconnect()
     {
-        NetworkManager.Singleton.OnClientConnectedCallback  -= OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
-
         NetworkManager.Singleton.Shutdown();
-
         m_multiplayerUI.EnableButtons();
+        m_multiplayerUI.ShowJoinCode("---");
         Debug.Log("[GameManager] Desconectado.");
-    }
-
-    private void OnClientConnected(ulong clientId)
-    {
-        Debug.Log($"[GameManager] Cliente conectado: {clientId}");
     }
 
     private void OnClientDisconnected(ulong clientId)
