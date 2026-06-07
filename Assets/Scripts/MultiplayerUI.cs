@@ -1,66 +1,70 @@
 using System;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
-/// Versión actualizada del MultiplayerUI con soporte para Join Code.
-/// Agregá en el .uxml:
-///   - Label con name="LabelJoinCode"
-///   - TextField con name="InputJoinCode"
+/// MultiplayerUI usando Canvas UGUI estándar en lugar de UIDocument/UI Toolkit.
+/// Más confiable en Android y no tiene problemas de World Space.
+///
+/// SETUP en Unity:
+/// 1. Creá un Canvas (GameObject → UI → Canvas)
+///    - Render Mode: Screen Space - Overlay
+///    - UI Scale Mode: Scale With Screen Size, Reference 1080x1920
+/// 2. Dentro del Canvas agregá:
+///    - Button llamado "ButtonHost"     → texto "Start Host"
+///    - Button llamado "ButtonClient"   → texto "Start Client"
+///    - Button llamado "ButtonDisconnect" → texto "Disconnect"
+///    - Text (TMP) llamado "LabelJoinCode" → texto "IP: ---"
+///    - InputField (TMP) llamado "InputJoinCode" → placeholder "Ingresá la IP..."
+/// 3. Asigná este script a un GameObject vacío hijo del Canvas o al mismo Canvas.
+/// 4. Arrastrá cada elemento a los campos del Inspector.
 /// </summary>
 public class MultiplayerUI : MonoBehaviour
 {
-    [SerializeField] private UIDocument m_uiDocument;
+    [Header("Botones")]
+    [SerializeField] private Button buttonHost;
+    [SerializeField] private Button buttonClient;
+    [SerializeField] private Button buttonDisconnect;
 
-    private Button m_hostButton, m_clientButton, m_clientDisconnect;
-    private Label m_labelJoinCode;
-    private TextField m_inputJoinCode;
+    [Header("Texto e Input")]
+    [SerializeField] private TMP_Text labelJoinCode;
+    [SerializeField] private TMP_InputField inputJoinCode;
 
-    public event Action OnStartHost, OnStartClient, OnDiconnectClient;
-
-    private void Awake()
-    {
-        var root = m_uiDocument.rootVisualElement;
-
-        m_hostButton        = root.Q<Button>("ButtonHost");
-        m_clientButton      = root.Q<Button>("ButtonClient");
-        m_clientDisconnect  = root.Q<Button>("ButtonDisconnect");
-        m_labelJoinCode     = root.Q<Label>("LabelJoinCode");
-        m_inputJoinCode     = root.Q<TextField>("InputJoinCode");
-    }
+    public event Action OnStartHost;
+    public event Action OnStartClient;
+    public event Action OnDiconnectClient;
 
     private void Start()
     {
-        m_hostButton.clicked       += () => OnStartHost?.Invoke();
-        m_clientButton.clicked     += () => OnStartClient?.Invoke();
-        m_clientDisconnect.clicked += () => OnDiconnectClient?.Invoke();
+        buttonHost.onClick.AddListener(() => OnStartHost?.Invoke());
+        buttonClient.onClick.AddListener(() => OnStartClient?.Invoke());
+        buttonDisconnect.onClick.AddListener(() => OnDiconnectClient?.Invoke());
         EnableButtons();
     }
 
     public void DisableButtons()
     {
-        m_hostButton.SetEnabled(false);
-        m_clientButton.SetEnabled(false);
-        m_clientDisconnect.SetEnabled(true);
+        buttonHost.interactable       = false;
+        buttonClient.interactable     = false;
+        buttonDisconnect.interactable = true;
     }
 
     public void EnableButtons()
     {
-        m_hostButton.SetEnabled(true);
-        m_clientButton.SetEnabled(true);
-        m_clientDisconnect.SetEnabled(false);
+        buttonHost.interactable       = true;
+        buttonClient.interactable     = true;
+        buttonDisconnect.interactable = false;
     }
 
-    /// <summary>Muestra el Join Code generado por el host.</summary>
     public void ShowJoinCode(string code)
     {
-        if (m_labelJoinCode != null)
-            m_labelJoinCode.text = $"Código: {code}";
+        if (labelJoinCode != null)
+            labelJoinCode.text = $"IP: {code}";
     }
 
-    /// <summary>Lee el Join Code ingresado por el cliente.</summary>
     public string GetJoinCodeInput()
     {
-        return m_inputJoinCode != null ? m_inputJoinCode.value : string.Empty;
+        return inputJoinCode != null ? inputJoinCode.text : string.Empty;
     }
 }

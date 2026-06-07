@@ -5,52 +5,56 @@ using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 
 /// <summary>
-/// GameManager SIN Relay. Conexión directa por IP local (misma red WiFi).
-/// El host ve su IP en pantalla, el cliente la escribe para conectarse.
-/// Útil para demos, testing y juego en LAN.
+/// GameManager con conexión directa por IP (LAN/WiFi).
+/// Para juego por internet entre redes distintas, se necesita Relay o port forwarding.
+///
+/// Flujo:
+/// - Host presiona "Start Host" → ve su IP local en pantalla
+/// - Cliente escribe esa IP en el input y presiona "Start Client"
+/// - Ambos se conectan en la misma red WiFi
 /// </summary>
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private MultiplayerUI m_multiplayerUI;
 
-    [Header("Configuración de red")]
-    [Tooltip("Puerto de conexión. Debe ser el mismo en host y cliente.")]
+    [Header("Red")]
     [SerializeField] private ushort port = 7777;
 
     private void Start()
     {
-        if (m_multiplayerUI == null) return;
+        if (m_multiplayerUI == null)
+        {
+            Debug.LogError("[GameManager] MultiplayerUI no asignado en el Inspector.");
+            return;
+        }
 
         m_multiplayerUI.OnStartHost       += StartHost;
         m_multiplayerUI.OnStartClient     += StartClient;
         m_multiplayerUI.OnDiconnectClient += Disconnect;
     }
 
-    // -------------------------------------------------------
-    // HOST
-    // -------------------------------------------------------
-
     private void StartHost()
     {
         var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-        transport.SetConnectionData("0.0.0.0", port); // escucha en todas las interfaces
+        transport.SetConnectionData("0.0.0.0", port);
 
         NetworkManager.Singleton.OnClientConnectedCallback  += OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
-        NetworkManager.Singleton.StartHost();
+        bool started = NetworkManager.Singleton.StartHost();
 
-        // Mostrar la IP local para que el cliente se conecte
-        string localIP = GetLocalIP();
-        m_multiplayerUI.ShowJoinCode(localIP);
-        m_multiplayerUI.DisableButtons();
-
-        Debug.Log($"[GameManager] Host iniciado. IP local: {localIP} | Puerto: {port}");
+        if (started)
+        {
+            string ip = GetLocalIP();
+            m_multiplayerUI.ShowJoinCode(ip);
+            m_multiplayerUI.DisableButtons();
+            Debug.Log($"[GameManager] Host iniciado. IP: {ip} | Puerto: {port}");
+        }
+        else
+        {
+            Debug.LogError("[GameManager] No se pudo iniciar el Host.");
+        }
     }
-
-    // -------------------------------------------------------
-    // CLIENTE
-    // -------------------------------------------------------
 
     private void StartClient()
     {
@@ -58,7 +62,7 @@ public class GameManager : MonoBehaviour
 
         if (string.IsNullOrWhiteSpace(hostIP))
         {
-            Debug.LogWarning("[GameManager] Ingresá la IP del host antes de conectarte.");
+            Debug.LogWarning("[GameManager] Ingresá la IP del host.");
             return;
         }
 
@@ -67,26 +71,27 @@ public class GameManager : MonoBehaviour
 
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
-        NetworkManager.Singleton.StartClient();
-        m_multiplayerUI.DisableButtons();
+        bool started = NetworkManager.Singleton.StartClient();
 
-        Debug.Log($"[GameManager] Conectando a {hostIP}:{port}...");
+        if (started)
+        {
+            m_multiplayerUI.DisableButtons();
+            Debug.Log($"[GameManager] Conectando a {hostIP}:{port}...");
+        }
+        else
+        {
+            Debug.LogError("[GameManager] No se pudo iniciar el Cliente.");
+        }
     }
-
-    // -------------------------------------------------------
-    // DESCONEXIÓN
-    // -------------------------------------------------------
 
     private void Disconnect()
     {
         NetworkManager.Singleton.OnClientConnectedCallback  -= OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
-
         NetworkManager.Singleton.Shutdown();
 
         m_multiplayerUI.EnableButtons();
         m_multiplayerUI.ShowJoinCode("---");
-
         Debug.Log("[GameManager] Desconectado.");
     }
 
@@ -101,21 +106,14 @@ public class GameManager : MonoBehaviour
         m_multiplayerUI?.EnableButtons();
     }
 
-    // -------------------------------------------------------
-    // UTILIDAD
-    // -------------------------------------------------------
-
     private static string GetLocalIP()
     {
         try
         {
-            using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            socket.Connect("8.8.8.8", 65530);
-            return (socket.LocalEndPoint as IPEndPoint)?.Address.ToString() ?? "127.0.0.1";
+            using Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            s.Connect("8.8.8.8", 65530);
+            return (s.LocalEndPoint as IPEndPoint)?.Address.ToString() ?? "127.0.0.1";
         }
-        catch
-        {
-            return "127.0.0.1";
-        }
+        catch { return "127.0.0.1"; }
     }
 }
