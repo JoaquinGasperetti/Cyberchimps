@@ -1,27 +1,40 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using Unity.Netcode;
 
-public class GoalZone : MonoBehaviour
+public class GoalZone : NetworkBehaviour
 {
-    private bool completed;
+    private NetworkVariable<bool> completed = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    public override void OnNetworkSpawn()
+    {
+        completed.OnValueChanged += OnLevelCompleted;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        completed.OnValueChanged -= OnLevelCompleted;
+    }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (completed)
-            return;
+        if (!IsServer) return;
+        if (completed.Value) return;
+        if (!other.CompareTag("Player")) return;
 
-        if (other.CompareTag("Player"))
-        {
-            completed = true;
-
-            if (LevelManager.Instance != null)
-            {
-                LevelManager.Instance.CompleteLevel();
-            }
-
-            Debug.Log("META ALCANZADA");
-        }
+        completed.Value = true;
     }
-   
 
+    private void OnLevelCompleted(bool previous, bool current)
+    {
+        if (!current) return;
+
+        LevelTimer.Instance?.StopTimer();
+        Debug.Log("META ALCANZADA");
+
+        // Aquí podés llamar a tu pantalla de resultados
+    }
 }

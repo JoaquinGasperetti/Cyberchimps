@@ -1,7 +1,8 @@
 using UnityEngine;
+using Unity.Netcode;
 
 [RequireComponent(typeof(Rigidbody))]
-public class PlayerController : MonoBehaviour
+public class PlayerController : NetworkBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 7f;
@@ -11,7 +12,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     private PlayerInputHandler input;
     private PlayerInteractor interactor;
-    private Animator anim;
+
     private bool isGrounded;
 
     private void Awake()
@@ -19,27 +20,35 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         input = GetComponent<PlayerInputHandler>();
         interactor = GetComponent<PlayerInteractor>();
-        anim = GetComponentInChildren<Animator>();
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (!IsOwner)
+        {
+            // El NetworkTransform maneja la posición del jugador remoto.
+            // Ponemos el Rigidbody en kinematic para que no interfiera.
+            rb.isKinematic = true;
+        }
     }
 
     private void Update()
     {
-        if (!LevelManager.Instance.CanPlay)
-            return;
+        if (!IsOwner) return;
+
         CheckGround();
         HandleJump();
-        UpdateAnimator();
     }
 
     private void FixedUpdate()
     {
+        if (!IsOwner) return;
+
         Move();
     }
 
     private void Move()
     {
-        if (!LevelManager.Instance.CanPlay)
-            return;
         if (interactor != null && interactor.IsPushing)
             return;
 
@@ -60,8 +69,6 @@ public class PlayerController : MonoBehaviour
 
     private void HandleJump()
     {
-        if (!LevelManager.Instance.CanPlay)
-            return;
         if (interactor != null && interactor.IsPushing)
             return;
 
@@ -72,37 +79,6 @@ public class PlayerController : MonoBehaviour
                 jumpForce,
                 rb.linearVelocity.z
             );
-        }
-    }
-    private void UpdateAnimator()
-    {
-        if (anim == null) return;
-
-        float currentSpeed = 0f;
-
-       
-        if (interactor != null && interactor.IsPushing)
-        {
-            // Como el Rigidbody está quieto, usamos la fuerza con la que mueves el joystick (0 a 1)
-            // Multiplicado por moveSpeed para simular la velocidad y engañar al Animator
-            currentSpeed = input.MoveInput.magnitude * moveSpeed;
-        }
-        else
-        {
-            // Movimiento normal libre
-            Vector3 flatVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-            currentSpeed = flatVelocity.magnitude;
-        }
-
-        // Le pasamos la velocidad final calculada
-        anim.SetFloat("Speed", currentSpeed);
-        anim.SetFloat("YVelocity", rb.linearVelocity.y);
-        anim.SetBool("IsGrounded", isGrounded);
-
-        if (interactor != null)
-        {
-            anim.SetBool("IsPushing", interactor.IsPushing);
-            anim.SetBool("estaSosteniendoCaja", interactor.IsHolding);
         }
     }
 
