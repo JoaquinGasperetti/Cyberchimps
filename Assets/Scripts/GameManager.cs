@@ -1,119 +1,121 @@
-using System.Net;
-using System.Net.Sockets;
+using System;
+using System.Threading.Tasks;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
+using Unity.Services.Authentication;
+using Unity.Services.Core;
+using Unity.Services.Multiplayer;
 using UnityEngine;
 
-/// <summary>
-/// GameManager con conexión directa por IP (LAN/WiFi).
-/// Para juego por internet entre redes distintas, se necesita Relay o port forwarding.
-///
-/// Flujo:
-/// - Host presiona "Start Host" → ve su IP local en pantalla
-/// - Cliente escribe esa IP en el input y presiona "Start Client"
-/// - Ambos se conectan en la misma red WiFi
-/// </summary>
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private MultiplayerUI m_multiplayerUI;
 
-    [Header("Red")]
-    [SerializeField] private ushort port = 7777;
+    private ISession currentSession;
 
     private void Start()
     {
         if (m_multiplayerUI == null)
         {
-            Debug.LogError("[GameManager] MultiplayerUI no asignado en el Inspector.");
+            Debug.LogError("[GameManager] MultiplayerUI no asignado.");
             return;
         }
 
-        m_multiplayerUI.OnStartHost       += StartHost;
-        m_multiplayerUI.OnStartClient     += StartClient;
-        m_multiplayerUI.OnDiconnectClient += Disconnect;
+        m_multiplayerUI.OnStartHost += () => _ = StartHostAsync();
+        m_multiplayerUI.OnStartClient += () => _ = StartClientAsync();
+        m_multiplayerUI.OnDiconnectClient += () => _ = DisconnectAsync();
+
+        _ = InitUGSAsync();
     }
 
-    private void StartHost()
+    private async Task InitUGSAsync()
     {
-        var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-        transport.SetConnectionData("0.0.0.0", port);
-
-        NetworkManager.Singleton.OnClientConnectedCallback  += OnClientConnected;
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
-
-        bool started = NetworkManager.Singleton.StartHost();
-
-        if (started)
+        try
         {
-            string ip = GetLocalIP();
-            m_multiplayerUI.ShowJoinCode(ip);
-            m_multiplayerUI.DisableButtons();
-            Debug.Log($"[GameManager] Host iniciado. IP: {ip} | Puerto: {port}");
+            await UnityServices.InitializeAsync();
+
+            if (!AuthenticationService.Instance.IsSignedIn)
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+            Debug.Log($"[GameManager] UGS listo. ID: {AuthenticationService.Instance.PlayerId}");
         }
-        else
+        catch (Exception e)
         {
-            Debug.LogError("[GameManager] No se pudo iniciar el Host.");
+            Debug.LogError($"[GameManager] Error en UGS init: {e.Message}");
         }
     }
 
-    private void StartClient()
+    private async Task StartHostAsync()
     {
-        string hostIP = m_multiplayerUI.GetJoinCodeInput().Trim();
-
-        if (string.IsNullOrWhiteSpace(hostIP))
+        m_multiplayerUI.DisableButtons();
+        try
         {
-            Debug.LogWarning("[GameManager] Ingresá la IP del host.");
+            var options = new SessionOptions { MaxPlayers = 2 }.WithRelayNetwork();
+            currentSession = await MultiplayerService.Instance.CreateSessionAsync(options);
+
+            string joinCode = currentSession.Code;
+            m_multiplayerUI.ShowJoinCode(joinCode);
+
+            NetworkManager.Singleton.StartHost();
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+
+            Debug.Log($"[GameManager] Host iniciado. Código: {joinCode}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[GameManager] Error iniciando host: {e.Message}");
+            m_multiplayerUI.EnableButtons();
+        }
+    }
+
+    private async Task StartClientAsync()
+    {
+        string code = m_multiplayerUI.GetJoinCodeInput().Trim().ToUpper();
+
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            Debug.LogWarning("[GameManager] Ingresá el código de sesión.");
             return;
         }
 
-        var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-        transport.SetConnectionData(hostIP, port);
-
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
-
-        bool started = NetworkManager.Singleton.StartClient();
-
-        if (started)
+        m_multiplayerUI.DisableButtons();
+        try
         {
-            m_multiplayerUI.DisableButtons();
-            Debug.Log($"[GameManager] Conectando a {hostIP}:{port}...");
+            // JoinSessionByCodeAsync no necesita WithRelayNetwork —
+            // el relay se configura automáticamente desde los datos de la sesión existente
+            currentSession = await MultiplayerService.Instance.JoinSessionByCodeAsync(code);
+
+            NetworkManager.Singleton.StartClient();
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+
+            Debug.Log($"[GameManager] Cliente conectado. Código: {code}");
         }
-        else
+        catch (Exception e)
         {
-            Debug.LogError("[GameManager] No se pudo iniciar el Cliente.");
+            Debug.LogError($"[GameManager] Error conectando cliente: {e.Message}");
+            m_multiplayerUI.EnableButtons();
         }
     }
 
-    private void Disconnect()
+    private async Task DisconnectAsync()
     {
-        NetworkManager.Singleton.OnClientConnectedCallback  -= OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
         NetworkManager.Singleton.Shutdown();
+
+        if (currentSession != null)
+        {
+            try { await currentSession.LeaveAsync(); }
+            catch (Exception e) { Debug.LogWarning($"[GameManager] Error al salir: {e.Message}"); }
+            currentSession = null;
+        }
 
         m_multiplayerUI.EnableButtons();
         m_multiplayerUI.ShowJoinCode("---");
         Debug.Log("[GameManager] Desconectado.");
     }
 
-    private void OnClientConnected(ulong clientId)
-    {
-        Debug.Log($"[GameManager] Cliente conectado: {clientId}");
-    }
-
     private void OnClientDisconnected(ulong clientId)
     {
         Debug.Log($"[GameManager] Cliente desconectado: {clientId}");
         m_multiplayerUI?.EnableButtons();
-    }
-
-    private static string GetLocalIP()
-    {
-        try
-        {
-            using Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            s.Connect("8.8.8.8", 65530);
-            return (s.LocalEndPoint as IPEndPoint)?.Address.ToString() ?? "127.0.0.1";
-        }
-        catch { return "127.0.0.1"; }
     }
 }
