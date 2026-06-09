@@ -202,7 +202,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 947190700}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LevelSelectorManager, Assembly-CSharp
         m_MethodName: LoadLevel
         m_Mode: 5
@@ -335,7 +335,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 947190700}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LevelSelectorManager, Assembly-CSharp
         m_MethodName: LoadLevel
         m_Mode: 5
@@ -468,7 +468,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 947190700}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LevelSelectorManager, Assembly-CSharp
         m_MethodName: LoadLevel
         m_Mode: 5
@@ -865,7 +865,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 947190700}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LevelSelectorManager, Assembly-CSharp
         m_MethodName: LoadLevel
         m_Mode: 5
@@ -1135,8 +1135,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 947190700}
-        m_TargetAssemblyTypeName: LevelSelectorManager, Assembly-CSharp
+      - m_Target: {fileID: 947190702}
+        m_TargetAssemblyTypeName: NetworkLevelSelectorManager, Assembly-CSharp
         m_MethodName: LoadLevel
         m_Mode: 5
         m_Arguments:
@@ -1144,7 +1144,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Level1
+          m_StringArgument: Esqueleto de lvl 1
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &656081467
@@ -1405,7 +1405,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 947190700}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LevelSelectorManager, Assembly-CSharp
         m_MethodName: LoadLevel
         m_Mode: 5
@@ -1675,7 +1675,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 947190700}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LevelSelectorManager, Assembly-CSharp
         m_MethodName: LoadLevel
         m_Mode: 5
@@ -1950,7 +1950,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 947190701}
-  - component: {fileID: 947190700}
+  - component: {fileID: 947190702}
   m_Layer: 0
   m_Name: LevelSelectorManager
   m_TagString: Untagged
@@ -1958,18 +1958,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &947190700
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 947190699}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2af39e3c4595ec4791d2c853a397b66, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LevelSelectorManager
 --- !u!4 &947190701
 Transform:
   m_ObjectHideFlags: 0
@@ -1985,6 +1973,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &947190702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 947190699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 702cea5b2b1a8694ba9f1d8719c62d11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkLevelSelectorManager
+  labelStatus: {fileID: 0}
+  levelButtons: []
 --- !u!1 &970353137
 GameObject:
   m_ObjectHideFlags: 0
@@ -2245,7 +2247,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 947190700}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LevelSelectorManager, Assembly-CSharp
         m_MethodName: LoadLevel
         m_Mode: 5
@@ -3058,7 +3060,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 947190700}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LevelSelectorManager, Assembly-CSharp
         m_MethodName: LoadLevel
         m_Mode: 5
@@ -3191,8 +3193,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 947190700}
-        m_TargetAssemblyTypeName: LevelSelectorManager, Assembly-CSharp
+      - m_Target: {fileID: 947190702}
+        m_TargetAssemblyTypeName: NetworkLevelSelectorManager, Assembly-CSharp
         m_MethodName: LoadLevel
         m_Mode: 5
         m_Arguments:
@@ -3200,7 +3202,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: LevelTutorial
+          m_StringArgument: OnlineTest
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1826918210
@@ -3428,7 +3430,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 947190700}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LevelSelectorManager, Assembly-CSharp
         m_MethodName: LoadLevel
         m_Mode: 5
