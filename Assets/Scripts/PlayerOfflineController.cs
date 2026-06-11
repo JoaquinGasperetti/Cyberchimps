@@ -156,7 +156,6 @@ public class PlayerOfflineController : MonoBehaviour
         HandleJump();
         HandleInteraction();
         UpdateAnimator();
-        actionPressedThisFrame = false; // resetear al final del frame
     }
 
     private void FixedUpdate()
@@ -216,24 +215,22 @@ public class PlayerOfflineController : MonoBehaviour
     {
         if (!actionPressedThisFrame) return;
 
-        // Si tiene algo en la mano → usarlo
         if (heldInteractable != null)
         {
             heldInteractable.Interact(GetOfflineInteractor());
-            return;
         }
-
-        // Si está empujando → salir del push
-        if (isPushing && activePushable != null)
+        else if (isPushing && activePushable != null)
         {
             activePushable.Interact(GetOfflineInteractor());
-            return;
+        }
+        else
+        {
+            ActionInteractable target = FindBestInteractable();
+            if (target != null)
+                target.Interact(GetOfflineInteractor());
         }
 
-        // Buscar el mejor interactuable cercano
-        ActionInteractable target = FindBestInteractable();
-        if (target != null)
-            target.Interact(GetOfflineInteractor());
+        actionPressedThisFrame = false;
     }
 
     private ActionInteractable FindBestInteractable()

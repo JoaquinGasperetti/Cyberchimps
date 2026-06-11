@@ -2,10 +2,10 @@ using UnityEngine;
 
 public class Door : MonoBehaviour
 {
-    public Transform puerta;          // Asigna el objeto de la puerta
-    public Vector3 posicionAbierta;   // Posición de la puerta cuando está abierta
-    public Vector3 posicionCerrada;   // Posición de la puerta cuando está cerrada
-    public float velocidad = 2f;      // Velocidad de apertura/cierre
+    public Transform puerta;          
+    public Vector3 posicionAbierta;   
+    public Vector3 posicionCerrada;  
+    public float velocidad = 2f;      
 
     private bool boton1Presionado = false;
     private bool boton2Presionado = false;
