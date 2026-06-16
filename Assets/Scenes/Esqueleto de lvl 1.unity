@@ -93,8 +93,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
-  m_LightingSettings: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: 76fd75a8e234a354c98137931360edd0, type: 2}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: d2640718f95222d48ae3def529b6b838, type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -188,6 +188,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_1 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 650391048483303768, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_LocalScale.x
       value: 2
@@ -265,6 +269,10 @@ PrefabInstance:
     - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_Name
       value: Palm_2 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6593861748000929070, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -403,6 +411,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3428170242773628697, guid: c3283183b5d79604f8a68fb274e70d2a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -509,6 +521,10 @@ PrefabInstance:
     - target: {fileID: 6872608672995622791, guid: 65ba291baa652664bbcca3c964f5aa34, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6872608672995622791, guid: 65ba291baa652664bbcca3c964f5aa34, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -654,6 +670,10 @@ PrefabInstance:
     - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
       propertyPath: m_Name
       value: Palm_7 Variant (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -848,6 +868,10 @@ PrefabInstance:
     - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
       propertyPath: m_Name
       value: Palm_7 Variant (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1125,7 +1149,7 @@ MonoBehaviour:
   m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
-    TrackingTarget: {fileID: 2044669382}
+    TrackingTarget: {fileID: 0}
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
@@ -1235,6 +1259,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3428170242773628697, guid: c3283183b5d79604f8a68fb274e70d2a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1254,6 +1282,10 @@ PrefabInstance:
     - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_Name
       value: Palm_6 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 685782995929789036, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_LocalScale.x
@@ -1332,6 +1364,10 @@ PrefabInstance:
     - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_Name
       value: Palm_2 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6593861748000929070, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1451,6 +1487,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_7 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1472,6 +1512,10 @@ PrefabInstance:
     - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_Name
       value: Palm_2 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6593861748000929070, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1622,6 +1666,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_7 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1713,6 +1761,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_2 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6593861748000929070, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 22.94452
@@ -1774,6 +1826,10 @@ PrefabInstance:
     - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_Name
       value: Palm_6 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 685782995929789036, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_LocalScale.x
@@ -1849,9 +1905,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1148976626293815953, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1992970770475518617, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2631076691626530913, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4263356795572294357, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_Name
       value: Palmeras (9)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7722138593150982389, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1893,6 +1969,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9135619803535701643, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1906,9 +1986,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1148976626293815953, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1992970770475518617, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2631076691626530913, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4263356795572294357, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_Name
       value: Palmeras (12)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7722138593150982389, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1950,6 +2050,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9135619803535701643, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1969,7 +2073,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &506709635
 Transform:
@@ -2063,6 +2167,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 6872608672995622791, guid: 65ba291baa652664bbcca3c964f5aa34, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2144,9 +2252,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1148976626293815953, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1992970770475518617, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2631076691626530913, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4263356795572294357, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_Name
       value: Palmeras (10)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7722138593150982389, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2188,6 +2316,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9135619803535701643, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2204,6 +2336,10 @@ PrefabInstance:
     - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_Name
       value: Palm_6 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 685782995929789036, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_LocalScale.x
@@ -2412,6 +2548,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 2984627441717347123, guid: a1c82c968507dc04485f1ec368d28943, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2489,6 +2629,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 6872608672995622791, guid: 65ba291baa652664bbcca3c964f5aa34, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2502,9 +2646,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1148976626293815953, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1992970770475518617, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2631076691626530913, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4263356795572294357, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_Name
       value: Palmeras (13)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7722138593150982389, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_LocalPosition.x
@@ -2545,6 +2709,10 @@ PrefabInstance:
     - target: {fileID: 7722138593150982389, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9135619803535701643, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2627,6 +2795,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3428170242773628697, guid: c3283183b5d79604f8a68fb274e70d2a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2673,6 +2845,10 @@ PrefabInstance:
     - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_Name
       value: Palm_1 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 650391048483303768, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_LocalScale.x
@@ -2812,6 +2988,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 6872608672995622791, guid: 65ba291baa652664bbcca3c964f5aa34, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2828,6 +3008,10 @@ PrefabInstance:
     - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_Name
       value: Palm_6 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 685782995929789036, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_LocalScale.x
@@ -2906,6 +3090,10 @@ PrefabInstance:
     - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_Name
       value: Palm_1 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 650391048483303768, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_LocalScale.x
@@ -3041,6 +3229,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_7 Variant (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3119,6 +3311,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_7 Variant (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3140,6 +3336,10 @@ PrefabInstance:
     - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_Name
       value: Palm_1 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 650391048483303768, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_LocalScale.x
@@ -3362,6 +3562,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 3428170242773628697, guid: c3283183b5d79604f8a68fb274e70d2a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3563,6 +3767,10 @@ PrefabInstance:
     - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
       propertyPath: m_Name
       value: Palm_7 Variant (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3820,6 +4028,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3428170242773628697, guid: c3283183b5d79604f8a68fb274e70d2a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3866,6 +4078,10 @@ PrefabInstance:
     - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_Name
       value: Palm_2 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6593861748000929070, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3931,7 +4147,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &999143730
 Transform:
@@ -3964,6 +4180,10 @@ PrefabInstance:
     - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_Name
       value: Palm_6 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 685782995929789036, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_LocalScale.x
@@ -4045,7 +4265,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &1046143362
 Transform:
@@ -4169,6 +4389,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_6 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 685782995929789036, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_LocalScale.x
       value: 2
@@ -4246,6 +4470,10 @@ PrefabInstance:
     - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_Name
       value: Palm_6 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 685782995929789036, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_LocalScale.x
@@ -4409,17 +4637,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5194995433032930017, guid: 8ede486ac00516c4ba325610e308202a, type: 3}
   m_PrefabInstance: {fileID: 1140601864}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1151077444 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6362874864263716780, guid: dfc094582b1eba74b8e0e044fea4c442, type: 3}
-  m_PrefabInstance: {fileID: 1624878316}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a47f546fc70ec8428172694e78e4288, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1183481189
 GameObject:
   m_ObjectHideFlags: 0
@@ -4438,7 +4655,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!65 &1183481190
 BoxCollider:
@@ -4560,6 +4777,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_1 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 650391048483303768, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_LocalScale.x
       value: 2
@@ -4626,133 +4847,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 650391048483303768, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
   m_PrefabInstance: {fileID: 1184350625}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1184419194
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1184419197}
-  - component: {fileID: 1184419196}
-  - component: {fileID: 1184419195}
-  m_Layer: 0
-  m_Name: Directional Light
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1184419195
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1184419194}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
-  m_UsePipelineSettings: 1
-  m_AdditionalLightsShadowResolutionTier: 2
-  m_CustomShadowLayers: 0
-  m_LightCookieSize: {x: 1, y: 1}
-  m_LightCookieOffset: {x: 0, y: 0}
-  m_SoftShadowQuality: 0
-  m_RenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_ShadowRenderingLayersMask:
-    serializedVersion: 0
-    m_Bits: 1
-  m_Version: 4
-  m_LightLayerMask: 1
-  m_ShadowLayerMask: 1
-  m_RenderingLayers: 1
-  m_ShadowRenderingLayers: 1
---- !u!108 &1184419196
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1184419194}
-  m_Enabled: 1
-  serializedVersion: 12
-  m_Type: 1
-  m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
-  m_Intensity: 1
-  m_Range: 10
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize2D: {x: 0.5, y: 0.5}
-  m_Shadows:
-    m_Type: 2
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!4 &1184419197
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1184419194}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!1001 &1204694937
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4820,6 +4914,10 @@ PrefabInstance:
     - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
       propertyPath: m_Name
       value: Palm_7 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5011,6 +5109,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_7 Variant (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5088,6 +5190,10 @@ PrefabInstance:
     - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
       propertyPath: m_Name
       value: Palm_7 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5167,6 +5273,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_7 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5191,7 +5301,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &1251213640
 Transform:
@@ -5349,6 +5459,10 @@ PrefabInstance:
     - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
       propertyPath: m_Name
       value: Palm_7 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5556,6 +5670,10 @@ PrefabInstance:
     - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
       propertyPath: m_Name
       value: Palm_7 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5766,6 +5884,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_1 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 650391048483303768, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_LocalScale.x
       value: 2
@@ -5843,6 +5965,10 @@ PrefabInstance:
     - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_Name
       value: Palm_2 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6593861748000929070, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5977,6 +6103,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 2984627441717347123, guid: a1c82c968507dc04485f1ec368d28943, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5993,6 +6123,10 @@ PrefabInstance:
     - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_Name
       value: Palm_2 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6593861748000929070, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6058,7 +6192,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &1561209633
 Transform:
@@ -6148,6 +6282,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_7 Variant (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6166,9 +6304,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1148976626293815953, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1992970770475518617, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2631076691626530913, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4263356795572294357, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_Name
       value: Palmeras (11)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7722138593150982389, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6209,6 +6367,10 @@ PrefabInstance:
     - target: {fileID: 7722138593150982389, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9135619803535701643, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6282,6 +6444,10 @@ PrefabInstance:
     - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
       propertyPath: m_Name
       value: Palm_7 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6360,6 +6526,10 @@ PrefabInstance:
     - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
       propertyPath: m_Name
       value: Palm_7 Variant (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4490458564448833188, guid: 4886f089f1adf674292e23523f6541ac, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6681,89 +6851,15 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 6872608672995622791, guid: 65ba291baa652664bbcca3c964f5aa34, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 65ba291baa652664bbcca3c964f5aa34, type: 3}
---- !u!1001 &1644413445
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: -8170873576649825418, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_Avatar
-      value: 
-      objectReference: {fileID: 9000000, guid: 6cab0b37ae0c9c346866c67232a8ae9f, type: 3}
-    - target: {fileID: 1058279654898042755, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: holdPoint
-      value: 
-      objectReference: {fileID: 1893627747}
-    - target: {fileID: 1058279654898042755, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: movementJoystick
-      value: 
-      objectReference: {fileID: 1151077444}
-    - target: {fileID: 1058279654898042755, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: groundMask.m_Bits
-      value: 64
-      objectReference: {fileID: 0}
-    - target: {fileID: 1058279654898042755, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: interactableMask.m_Bits
-      value: 192
-      objectReference: {fileID: 0}
-    - target: {fileID: 1924023912695798409, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -13.494089
-      objectReference: {fileID: 0}
-    - target: {fileID: 1924023912695798409, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 3.44
-      objectReference: {fileID: 0}
-    - target: {fileID: 1924023912695798409, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -6.0354905
-      objectReference: {fileID: 0}
-    - target: {fileID: 1924023912695798409, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1924023912695798409, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1924023912695798409, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1924023912695798409, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1924023912695798409, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1924023912695798409, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1924023912695798409, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6622215444113177547, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-      propertyPath: m_Name
-      value: PlayerOffline
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 6043827106814575459, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
 --- !u!1001 &1651237735
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6775,6 +6871,10 @@ PrefabInstance:
     - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_Name
       value: Palm_6 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 202579162367895766, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 685782995929789036, guid: 5bd55c16b5b292445a9f1446b2ccfce3, type: 3}
       propertyPath: m_LocalScale.x
@@ -6856,7 +6956,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &1718580255
 Transform:
@@ -7018,6 +7118,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Palm_2 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 5821407187386363796, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6593861748000929070, guid: 16a414836d0d2c0408dce5be8470001f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 22.94452
@@ -7113,7 +7217,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &1804231472
 Transform:
@@ -7280,16 +7384,15 @@ PrefabInstance:
       propertyPath: m_Name
       value: Column_V1_1 Variant (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 6578968256212251988, guid: 4351ebd2ccbca8349b9a431c6117c960, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4351ebd2ccbca8349b9a431c6117c960, type: 3}
---- !u!4 &1893627747 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2648649671129263363, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-  m_PrefabInstance: {fileID: 1644413445}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1925158692
 GameObject:
   m_ObjectHideFlags: 0
@@ -7304,7 +7407,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &1925158693
 Transform:
@@ -7459,11 +7562,6 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!4 &2044669382 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1924023912695798409, guid: 8f674933dea3e9c48a7095971560938c, type: 3}
-  m_PrefabInstance: {fileID: 1644413445}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2055441628
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7475,6 +7573,10 @@ PrefabInstance:
     - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_Name
       value: Palm_1 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 650391048483303768, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_LocalScale.x
@@ -7687,6 +7789,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Column_V1_1 Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 6578968256212251988, guid: 4351ebd2ccbca8349b9a431c6117c960, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7703,6 +7809,10 @@ PrefabInstance:
     - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_Name
       value: Palm_1 Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 165920268538129378, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 650391048483303768, guid: 518a5c2e5dacc6e458a2398cab70679b, type: 3}
       propertyPath: m_LocalScale.x
@@ -7835,9 +7945,29 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1148976626293815953, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1992970770475518617, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2631076691626530913, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4263356795572294357, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_Name
       value: Palmeras (6)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7565795054928825670, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7722138593150982389, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_LocalPosition.x
@@ -7878,6 +8008,10 @@ PrefabInstance:
     - target: {fileID: 7722138593150982389, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9135619803535701643, guid: f75c1b4f863e8fb4c8fdcd19b8a918cf, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7949,8 +8083,6 @@ SceneRoots:
   - {fileID: 1829540780}
   - {fileID: 1612098265}
   - {fileID: 2058979610}
-  - {fileID: 1644413445}
-  - {fileID: 1184419197}
   - {fileID: 1183481193}
   - {fileID: 1624878316}
   - {fileID: 285407400}
