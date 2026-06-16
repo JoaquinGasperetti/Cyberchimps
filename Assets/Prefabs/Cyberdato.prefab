@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1795651150682653334}
   - component: {fileID: 800147539013158031}
   - component: {fileID: 1509374459610433143}
+  - component: {fileID: 3332531379628012878}
   m_Layer: 0
   m_Name: Cyberdato
   m_TagString: Untagged
@@ -126,14 +127,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2369775386
-  InScenePlacedSourceGlobalObjectIdHash: 0
+  GlobalObjectIdHash: 3127479076
+  InScenePlacedSourceGlobalObjectIdHash: 2369775386
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
+  SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
@@ -152,3 +153,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CyberdataCollectible
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &3332531379628012878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4126348764271984009}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15efacf1fa0a56249b1fb0e7d39b3eb2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CollectibleVisual
+  rotationSpeed: 90
+  floatAmplitude: 0.25
+  floatFrequency: 1
