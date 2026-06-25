@@ -2,12 +2,9 @@ using UnityEngine;
 using Unity.Netcode;
 
 /// <summary>
-/// Objeto agarrable y lanzable sincronizado en red.
-/// REQUERIDO en el prefab: NetworkObject.
-/// 
-/// IMPORTANTE: NO usa SetParent porque Netcode no permite poner un NetworkObject
-/// bajo un transform que no tiene NetworkObject (el HoldPoint es un transform simple).
-/// En cambio, mientras es sostenido, se mueve a la posición del HoldPoint cada frame.
+/// Objeto agarrable sincronizado en red.
+/// La caja mantiene rotación Quaternion.identity mientras es sostenida
+/// para evitar deformaciones visuales causadas por la rotación del player.
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class GrabbableObject : ActionInteractable
@@ -16,7 +13,6 @@ public class GrabbableObject : ActionInteractable
 
     private Rigidbody rb;
 
-    // ulong.MaxValue = nadie lo sostiene
     private NetworkVariable<ulong> holderClientId = new NetworkVariable<ulong>(
         ulong.MaxValue,
         NetworkVariableReadPermission.Everyone,
@@ -41,21 +37,23 @@ public class GrabbableObject : ActionInteractable
     private void OnHolderChanged(ulong previous, ulong current)
     {
         bool isHeld = current != ulong.MaxValue;
-        rb.isKinematic = isHeld;
+        rb.isKinematic      = isHeld;
         rb.detectCollisions = !isHeld;
     }
 
-    // Seguir al HoldPoint cada frame (en todos los clientes que ven al holder)
     private void Update()
     {
         if (holderClientId.Value == ulong.MaxValue) return;
 
         PlayerInteractor holder = FindInteractorByClientId(holderClientId.Value);
-        if (holder != null && holder.HoldPoint != null)
-        {
-            transform.position = holder.HoldPoint.position;
-            transform.rotation = holder.HoldPoint.rotation;
-        }
+        if (holder == null || holder.HoldPoint == null) return;
+
+        // Posición: seguir al HoldPoint
+        transform.position = holder.HoldPoint.position;
+
+        // Rotación: siempre identity — la caja no rota con el player.
+        // Esto evita la deformación visual al girar a los lados.
+        transform.rotation = Quaternion.identity;
     }
 
     public override bool CanInteract(PlayerInteractor interactor)
@@ -80,7 +78,6 @@ public class GrabbableObject : ActionInteractable
 
         holderClientId.Value = clientId;
 
-        // Notificar al owner del interactor que registre el held
         NotifyGrabClientRpc(new ClientRpcParams
         {
             Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId } }
@@ -93,9 +90,9 @@ public class GrabbableObject : ActionInteractable
         ulong previousHolder = holderClientId.Value;
         holderClientId.Value = ulong.MaxValue;
 
-        rb.isKinematic = false;
+        rb.isKinematic      = false;
         rb.detectCollisions = true;
-        rb.linearVelocity = Vector3.zero;
+        rb.linearVelocity   = Vector3.zero;
         rb.AddForce(throwDirection * throwForce, ForceMode.Impulse);
 
         if (previousHolder != ulong.MaxValue)
@@ -110,7 +107,6 @@ public class GrabbableObject : ActionInteractable
     [ClientRpc]
     private void NotifyGrabClientRpc(ClientRpcParams rpcParams = default)
     {
-        // Solo llega al cliente que agarró el objeto
         PlayerInteractor local = PlayerInputHandler.LocalInstance?.GetComponent<PlayerInteractor>();
         local?.SetHeldInteractable(this);
     }
@@ -118,7 +114,6 @@ public class GrabbableObject : ActionInteractable
     [ClientRpc]
     private void NotifyThrowClientRpc(ClientRpcParams rpcParams = default)
     {
-        // Solo llega al cliente que soltó el objeto
         PlayerInteractor local = PlayerInputHandler.LocalInstance?.GetComponent<PlayerInteractor>();
         local?.ClearHeldInteractable(this);
     }

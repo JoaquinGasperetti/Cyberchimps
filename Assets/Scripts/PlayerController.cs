@@ -4,33 +4,39 @@ using Unity.Netcode;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : NetworkBehaviour
 {
-    [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float jumpForce = 7f;
+    [SerializeField] private float moveSpeed        = 5f;
+    [SerializeField] private float jumpForce        = 7f;
     [SerializeField] private float groundCheckRadius = 0.3f;
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private Transform groundCheckPoint;
 
-    private Rigidbody rb;
-    private PlayerInputHandler input;
-    private PlayerInteractor interactor;
+    private Rigidbody        rb;
+    private PlayerInputHandler  input;
+    private PlayerInteractor    interactor;
 
-    private bool isGrounded;
+    // Sincronizado en red para que PlayerAnimatorController
+    // lo lea correctamente en el jugador remoto
+    private NetworkVariable<bool> netIsGrounded = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    private bool localIsGrounded;
+
+    public bool IsGrounded => IsOwner ? localIsGrounded : netIsGrounded.Value;
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
-        input = GetComponent<PlayerInputHandler>();
+        rb         = GetComponent<Rigidbody>();
+        input      = GetComponent<PlayerInputHandler>();
         interactor = GetComponent<PlayerInteractor>();
     }
 
     public override void OnNetworkSpawn()
     {
         if (!IsOwner)
-        {
-            // El NetworkTransform maneja la posición del jugador remoto.
-            // Ponemos el Rigidbody en kinematic para que no interfiera.
             rb.isKinematic = true;
-        }
     }
 
     private void Update()
@@ -44,36 +50,27 @@ public class PlayerController : NetworkBehaviour
     private void FixedUpdate()
     {
         if (!IsOwner) return;
-
         Move();
     }
 
     private void Move()
     {
-        if (interactor != null && interactor.IsPushing)
-            return;
+        if (interactor != null && interactor.IsPushing) return;
 
-        Vector3 move = new Vector3(input.MoveInput.x, 0, input.MoveInput.y);
+        Vector3 move     = new Vector3(input.MoveInput.x, 0, input.MoveInput.y);
         Vector3 velocity = move * moveSpeed;
 
-        rb.linearVelocity = new Vector3(
-            velocity.x,
-            rb.linearVelocity.y,
-            velocity.z
-        );
+        rb.linearVelocity = new Vector3(velocity.x, rb.linearVelocity.y, velocity.z);
 
         if (move.sqrMagnitude > 0.01f)
-        {
             transform.rotation = Quaternion.LookRotation(move);
-        }
     }
 
     private void HandleJump()
     {
-        if (interactor != null && interactor.IsPushing)
-            return;
+        if (interactor != null && interactor.IsPushing) return;
 
-        if (input.JumpPressed && isGrounded)
+        if (input.JumpPressed && localIsGrounded)
         {
             rb.linearVelocity = new Vector3(
                 rb.linearVelocity.x,
@@ -85,17 +82,23 @@ public class PlayerController : NetworkBehaviour
 
     private void CheckGround()
     {
-        // Si no hay un punto de verificación asignado, usa la posición actual del jugador
-        Vector3 checkPosition = groundCheckPoint != null ? groundCheckPoint.position : transform.position + Vector3.down * 0.5f;
+        Vector3 checkPos = groundCheckPoint != null
+            ? groundCheckPoint.position
+            : transform.position + Vector3.down * 0.5f;
 
-        // Usa una esfera para detectar colisiones con el suelo
-        Collider[] groundColliders = Physics.OverlapSphere(checkPosition, groundCheckRadius, groundMask);
-        isGrounded = groundColliders.Length > 0;
+        Collider[] hits = Physics.OverlapSphere(checkPos, groundCheckRadius, groundMask);
+        localIsGrounded = hits.Length > 0;
+
+        // Sincronizar al servidor para que todos los clientes lean el valor correcto
+        if (IsServer)
+            netIsGrounded.Value = localIsGrounded;
+        else
+            UpdateGroundedServerRpc(localIsGrounded);
     }
 
-    /// <summary>
-    /// Retorna si el jugador está en el suelo.
-    /// Utilizado por PlayerAnimatorController para sincronizar las animaciones.
-    /// </summary>
-    public bool IsGrounded => isGrounded;
+    [ServerRpc]
+    private void UpdateGroundedServerRpc(bool grounded)
+    {
+        netIsGrounded.Value = grounded;
+    }
 }
