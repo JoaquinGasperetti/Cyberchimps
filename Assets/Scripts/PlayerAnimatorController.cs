@@ -34,12 +34,14 @@ public class PlayerAnimatorController : NetworkBehaviour
     private Animator      animator;
     private Rigidbody     rb;
     private PlayerInteractor interactor;
+    private PlayerController playerController;
 
     private void Awake()
     {
         animator   = GetComponent<Animator>();
         rb         = GetComponent<Rigidbody>();
         interactor = GetComponent<PlayerInteractor>();
+        playerController = GetComponent<PlayerController>();
     }
 
     private void Update()
@@ -63,9 +65,17 @@ public class PlayerAnimatorController : NetworkBehaviour
         // Velocidad vertical
         animator.SetFloat(YVelocityHash, vel.y);
 
-        // En suelo: si es kinematic (jugador remoto) asumimos grounded
-        // para evitar que quede flotando visualmente
-        bool grounded = rb == null || rb.isKinematic || Mathf.Abs(vel.y) < 0.15f;
+        // Usar el estado grounded del PlayerController si está disponible
+        bool grounded;
+        if (playerController != null)
+        {
+            grounded = playerController.IsGrounded;
+        }
+        else
+        {
+            // Fallback si PlayerController no está disponible
+            grounded = rb == null || rb.isKinematic || Mathf.Abs(vel.y) < 0.25f;
+        }
         animator.SetBool(IsGroundedHash, grounded);
 
         // Empujando

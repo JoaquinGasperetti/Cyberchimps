@@ -18,9 +18,9 @@ GameObject:
   - component: {fileID: 8797736973786346375}
   - component: {fileID: -4195584896749970020}
   - component: {fileID: 4300300994505724552}
-  - component: {fileID: -8170873576649825418}
-  - component: {fileID: -7910055668397069285}
-  - component: {fileID: 5289003976237691848}
+  - component: {fileID: 3370368948527786409}
+  - component: {fileID: 8761654249883378555}
+  - component: {fileID: -3439849314303519614}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -42,6 +42,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2648649671129263363}
+  - {fileID: 8551097129374991623}
   - {fileID: 5153881433414342171}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -107,7 +108,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2378749338
+  GlobalObjectIdHash: 2877431088
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -135,10 +136,11 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   moveSpeed: 5
   jumpForce: 7
-  groundCheckDistance: 1.1
+  groundCheckRadius: 0.3
   groundMask:
     serializedVersion: 2
     m_Bits: 64
+  groundCheckPoint: {fileID: 8551097129374991623}
 --- !u!114 &2236765104823021998
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -309,7 +311,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCameraTarget
   ShowTopMostFoldoutHeaderGroup: 1
   cameraTarget: {fileID: 0}
---- !u!95 &-8170873576649825418
+--- !u!95 &3370368948527786409
 Animator:
   serializedVersion: 7
   m_ObjectHideFlags: 0
@@ -320,9 +322,9 @@ Animator:
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: 6cab0b37ae0c9c346866c67232a8ae9f, type: 3}
   m_Controller: {fileID: 9100000, guid: 15a4a313b1821c147b8a6b47e5cb56a2, type: 2}
-  m_CullingMode: 0
+  m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 0
+  m_ApplyRootMotion: 1
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
@@ -331,21 +333,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &-7910055668397069285
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6622215444113177547}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79fd84eafbb09ad4f9689041a5c22fbc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimatorController
-  ShowTopMostFoldoutHeaderGroup: 1
-  speedDampTime: 0.1
---- !u!114 &5289003976237691848
+--- !u!114 &8761654249883378555
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -360,7 +348,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   NetworkAnimatorExpanded: 0
   AuthorityMode: 0
-  m_Animator: {fileID: -8170873576649825418}
+  m_Animator: {fileID: 3370368948527786409}
   TransitionStateInfoList: []
   AnimatorParameterEntries:
     ParameterEntries:
@@ -385,6 +373,20 @@ MonoBehaviour:
       Synchronize: 1
       ParameterType: 4
   AnimatorParametersExpanded: 0
+--- !u!114 &-3439849314303519614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6622215444113177547}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79fd84eafbb09ad4f9689041a5c22fbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimatorController
+  ShowTopMostFoldoutHeaderGroup: 1
+  speedDampTime: 0.1
 --- !u!1 &7378930858988388735
 GameObject:
   m_ObjectHideFlags: 0
@@ -410,7 +412,38 @@ Transform:
   m_GameObject: {fileID: 7378930858988388735}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.173, z: 0}
+  m_LocalPosition: {x: 0, y: 1.53, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1924023912695798409}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7398018434004543842
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8551097129374991623}
+  m_Layer: 0
+  m_Name: GroundCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8551097129374991623
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7398018434004543842}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.98, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -472,7 +505,8 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 15a4a313b1821c147b8a6b47e5cb56a2, type: 2}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5866666021909216657, guid: 6cab0b37ae0c9c346866c67232a8ae9f, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

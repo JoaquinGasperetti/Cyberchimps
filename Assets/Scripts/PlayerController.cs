@@ -6,8 +6,9 @@ public class PlayerController : NetworkBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 7f;
-    [SerializeField] private float groundCheckDistance = 0.2f;
+    [SerializeField] private float groundCheckRadius = 0.3f;
     [SerializeField] private LayerMask groundMask;
+    [SerializeField] private Transform groundCheckPoint;
 
     private Rigidbody rb;
     private PlayerInputHandler input;
@@ -84,7 +85,17 @@ public class PlayerController : NetworkBehaviour
 
     private void CheckGround()
     {
-        Ray ray = new Ray(transform.position, Vector3.down);
-        isGrounded = Physics.Raycast(ray, groundCheckDistance, groundMask);
+        // Si no hay un punto de verificación asignado, usa la posición actual del jugador
+        Vector3 checkPosition = groundCheckPoint != null ? groundCheckPoint.position : transform.position + Vector3.down * 0.5f;
+
+        // Usa una esfera para detectar colisiones con el suelo
+        Collider[] groundColliders = Physics.OverlapSphere(checkPosition, groundCheckRadius, groundMask);
+        isGrounded = groundColliders.Length > 0;
     }
+
+    /// <summary>
+    /// Retorna si el jugador está en el suelo.
+    /// Utilizado por PlayerAnimatorController para sincronizar las animaciones.
+    /// </summary>
+    public bool IsGrounded => isGrounded;
 }
