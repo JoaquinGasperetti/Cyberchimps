@@ -4,18 +4,18 @@ using Unity.Netcode;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : NetworkBehaviour
 {
-    [SerializeField] private float moveSpeed        = 5f;
-    [SerializeField] private float jumpForce        = 7f;
+    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float jumpForce = 7f;
     [SerializeField] private float groundCheckRadius = 0.3f;
     [SerializeField] private LayerMask groundMask;
     [SerializeField] private Transform groundCheckPoint;
 
-    private Rigidbody        rb;
-    private PlayerInputHandler  input;
-    private PlayerInteractor    interactor;
+    private Rigidbody rb;
+    private PlayerInputHandler input;
+    private PlayerInteractor interactor;
 
-    // Sincronizado en red para que PlayerAnimatorController
-    // lo lea correctamente en el jugador remoto
+    // Sincronizado en red — solo se actualiza cuando CAMBIA el valor,
+    // no cada frame, para no saturar la red con RPCs
     private NetworkVariable<bool> netIsGrounded = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -23,13 +23,14 @@ public class PlayerController : NetworkBehaviour
     );
 
     private bool localIsGrounded;
+    private bool lastSentGrounded; // último valor enviado al servidor
 
     public bool IsGrounded => IsOwner ? localIsGrounded : netIsGrounded.Value;
 
     private void Awake()
     {
-        rb         = GetComponent<Rigidbody>();
-        input      = GetComponent<PlayerInputHandler>();
+        rb = GetComponent<Rigidbody>();
+        input = GetComponent<PlayerInputHandler>();
         interactor = GetComponent<PlayerInteractor>();
     }
 
@@ -37,6 +38,9 @@ public class PlayerController : NetworkBehaviour
     {
         if (!IsOwner)
             rb.isKinematic = true;
+
+        // Inicializar para que el primer cambio siempre se envíe
+        lastSentGrounded = !localIsGrounded;
     }
 
     private void Update()
@@ -57,7 +61,7 @@ public class PlayerController : NetworkBehaviour
     {
         if (interactor != null && interactor.IsPushing) return;
 
-        Vector3 move     = new Vector3(input.MoveInput.x, 0, input.MoveInput.y);
+        Vector3 move = new Vector3(input.MoveInput.x, 0, input.MoveInput.y);
         Vector3 velocity = move * moveSpeed;
 
         rb.linearVelocity = new Vector3(velocity.x, rb.linearVelocity.y, velocity.z);
@@ -89,7 +93,11 @@ public class PlayerController : NetworkBehaviour
         Collider[] hits = Physics.OverlapSphere(checkPos, groundCheckRadius, groundMask);
         localIsGrounded = hits.Length > 0;
 
-        // Sincronizar al servidor para que todos los clientes lean el valor correcto
+        // Solo sincronizar cuando el valor cambia — evita flood de RPCs
+        if (localIsGrounded == lastSentGrounded) return;
+
+        lastSentGrounded = localIsGrounded;
+
         if (IsServer)
             netIsGrounded.Value = localIsGrounded;
         else
