@@ -1,6 +1,14 @@
 using UnityEngine;
 using Unity.Netcode;
 
+/// <summary>
+/// Maneja toda la interacción del jugador con el mundo: agarrar objetos y empujar cajas.
+/// Solo corre en el owner — se desactiva en jugadores remotos.
+///
+/// FIX aplicado: IsPushing ahora es una NetworkVariable en lugar de una propiedad local,
+/// así PlayerAnimatorController puede leerla correctamente en todos los clientes
+/// (antes el remoto siempre veía IsPushing = false).
+/// </summary>
 public class PlayerInteractor : NetworkBehaviour
 {
     [SerializeField] private float interactionRadius = 2f;
@@ -13,15 +21,24 @@ public class PlayerInteractor : NetworkBehaviour
     private ActionInteractable heldInteractable;
     private PushableObject activePushable;
 
-    public bool IsPushing { get; private set; }
+    // NetworkVariable para que el Animator del jugador remoto también vea IsPushing
+    private NetworkVariable<bool> netIsPushing = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
-    // --- AQUÍ ESTÁ LA LÍNEA QUE FALTABA ---
-    // Esto le avisa al Animator si el personaje tiene un objeto en las manos
+    public bool IsPushing => IsOwner ? _isPushingLocal : netIsPushing.Value;
     public bool IsHolding => heldInteractable != null;
-
     public Transform HoldPoint => holdPoint;
     public Camera MainCamera => mainCamera;
     public Vector2 MoveInput => input != null ? input.MoveInput : Vector2.zero;
+
+    private bool _isPushingLocal;
+
+    // =========================================================
+    // INIT
+    // =========================================================
 
     private void Awake()
     {
@@ -31,54 +48,54 @@ public class PlayerInteractor : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (IsOwner)
-        {
-            // Buscamos la cámara principal una vez spawneado,
-            // así evitamos agarrar la cámara del jugador equivocado
             mainCamera = Camera.main;
-        }
         else
-        {
             enabled = false;
-        }
     }
+
+    // =========================================================
+    // LOOP
+    // =========================================================
 
     private void Update()
     {
         if (!IsOwner) return;
         if (input == null || !input.ActionPressedThisFrame) return;
 
+        // Prioridad: objeto en mano → empujando → buscar nuevo
         if (heldInteractable != null)
         {
             heldInteractable.Interact(this);
             return;
         }
 
-        if (IsPushing && activePushable != null)
+        if (_isPushingLocal && activePushable != null)
         {
             activePushable.Interact(this);
             return;
         }
 
         ActionInteractable target = FindBestInteractable();
-        if (target != null)
-        {
-            target.Interact(this);
-        }
+        target?.Interact(this);
     }
 
     private void FixedUpdate()
     {
         if (!IsOwner) return;
 
-        if (IsPushing && activePushable != null)
-        {
+        if (_isPushingLocal && activePushable != null)
             activePushable.ApplyPush(input.MoveInput, mainCamera);
-        }
     }
+
+    // =========================================================
+    // BÚSQUEDA DE INTERACTUABLES
+    // =========================================================
 
     private ActionInteractable FindBestInteractable()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, interactionRadius, interactableMask);
+        Collider[] hits = Physics.OverlapSphere(
+            transform.position, interactionRadius, interactableMask
+        );
 
         ActionInteractable best = null;
         float bestScore = float.MinValue;
@@ -88,8 +105,8 @@ public class PlayerInteractor : NetworkBehaviour
             ActionInteractable interactable = hit.GetComponentInParent<ActionInteractable>();
             if (interactable == null || !interactable.CanInteract(this)) continue;
 
-            float distance = Vector3.Distance(transform.position, hit.ClosestPoint(transform.position));
-            float score = interactable.Priority * 10f - distance;
+            float dist = Vector3.Distance(transform.position, hit.ClosestPoint(transform.position));
+            float score = interactable.Priority * 10f - dist;
 
             if (score > bestScore)
             {
@@ -101,27 +118,38 @@ public class PlayerInteractor : NetworkBehaviour
         return best;
     }
 
+    // =========================================================
+    // API — llamada por PushableObject y GrabbableObject
+    // =========================================================
+
     public void StartPush(PushableObject pushable, Vector3 snapPosition)
     {
-        IsPushing = true;
+        _isPushingLocal = true;
         activePushable = pushable;
         transform.position = snapPosition;
+        SyncPushingServerRpc(true);
     }
 
     public void StopPush()
     {
-        IsPushing = false;
+        _isPushingLocal = false;
         activePushable = null;
+        SyncPushingServerRpc(false);
     }
 
     public void SetHeldInteractable(ActionInteractable interactable)
-    {
-        heldInteractable = interactable;
-    }
+        => heldInteractable = interactable;
 
     public void ClearHeldInteractable(ActionInteractable interactable)
     {
         if (heldInteractable == interactable)
             heldInteractable = null;
+    }
+
+    // ── Sincronizar IsPushing a todos los clientes ────────────────────────
+    [ServerRpc]
+    private void SyncPushingServerRpc(bool pushing)
+    {
+        netIsPushing.Value = pushing;
     }
 }
