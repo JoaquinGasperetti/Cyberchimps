@@ -2,26 +2,24 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
 
-/// <summary>
-/// Captura y expone el input del jugador local.
-/// Solo está activo en el owner — se desactiva en jugadores remotos.
-///
-/// FIX aplicado: agrega ConsumeJump() que PlayerController llama al saltar,
-/// evitando que JumpPressed quede true más de un frame y cause saltos dobles.
-/// </summary>
 public class PlayerInputHandler : NetworkBehaviour
 {
     [Header("UI Móvil")]
-    [Tooltip("Joystick del Canvas — se auto-busca si no está asignado")]
     [SerializeField] private Joystick movementJoystick;
 
     public Vector2 MoveInput { get; private set; }
     public bool JumpPressed { get; private set; }
     public bool ActionPressedThisFrame { get; private set; }
 
-    private Vector2 keyboardInput;
+    /// <summary>
+    /// True el frame en que se SUELTA el botón de acción.
+    /// Usado por PlayerInteractor para distinguir tap vs hold.
+    /// </summary>
+    public bool ActionReleased { get; private set; }
 
-    // Referencia estática al handler del jugador LOCAL en esta máquina.
+    private Vector2 keyboardInput;
+    private bool actionHeld;          // estado interno del botón de acción
+
     public static PlayerInputHandler LocalInstance { get; private set; }
 
     // =========================================================
@@ -38,15 +36,12 @@ public class PlayerInputHandler : NetworkBehaviour
                 movementJoystick = FindAnyObjectByType<Joystick>();
 
             var playerInput = GetComponent<PlayerInput>();
-            if (playerInput != null)
-                playerInput.enabled = true;
+            if (playerInput != null) playerInput.enabled = true;
         }
         else
         {
             var playerInput = GetComponent<PlayerInput>();
-            if (playerInput != null)
-                playerInput.enabled = false;
-
+            if (playerInput != null) playerInput.enabled = false;
             enabled = false;
         }
     }
@@ -58,7 +53,7 @@ public class PlayerInputHandler : NetworkBehaviour
     }
 
     // =========================================================
-    // INPUT SYSTEM CALLBACKS (teclado / gamepad)
+    // INPUT SYSTEM CALLBACKS
     // =========================================================
 
     public void OnMove(InputAction.CallbackContext context)
@@ -77,7 +72,18 @@ public class PlayerInputHandler : NetworkBehaviour
     public void OnAction(InputAction.CallbackContext context)
     {
         if (!IsOwner) return;
-        if (context.performed) TriggerAction();
+
+        if (context.started)
+        {
+            ActionPressedThisFrame = true;
+            actionHeld = true;
+        }
+
+        if (context.canceled)
+        {
+            actionHeld = false;
+            ActionReleased = true;
+        }
     }
 
     // =========================================================
@@ -86,7 +92,6 @@ public class PlayerInputHandler : NetworkBehaviour
 
     private void Update()
     {
-        // El joystick móvil tiene prioridad sobre el teclado
         if (movementJoystick != null && movementJoystick.Direction.sqrMagnitude > 0.01f)
             MoveInput = movementJoystick.Direction;
         else
@@ -95,26 +100,25 @@ public class PlayerInputHandler : NetworkBehaviour
 
     private void LateUpdate()
     {
+        // Limpiar flags de un solo frame
         ActionPressedThisFrame = false;
+        ActionReleased = false;
     }
 
     // =========================================================
-    // API — llamada por PlayerController y botones del Canvas
+    // API
     // =========================================================
 
-    /// <summary>
-    /// Consume el flag de salto. Llamado por PlayerController justo
-    /// después de aplicar la fuerza, para evitar saltos dobles.
-    /// </summary>
     public void ConsumeJump() => JumpPressed = false;
 
-    // Botones móviles del Canvas
+    // Canvas móvil
     public void MobileJumpDown() => JumpPressed = true;
     public void MobileJumpUp() => JumpPressed = false;
     public void TriggerAction() => ActionPressedThisFrame = true;
+    public void ReleaseAction() { ActionReleased = true; actionHeld = false; }
 
-    // Métodos estáticos para MobileUIConnector (no necesita referencia directa)
     public static void StaticMobileJumpDown() => LocalInstance?.MobileJumpDown();
     public static void StaticMobileJumpUp() => LocalInstance?.MobileJumpUp();
     public static void StaticTriggerAction() => LocalInstance?.TriggerAction();
+    public static void StaticReleaseAction() => LocalInstance?.ReleaseAction();
 }
