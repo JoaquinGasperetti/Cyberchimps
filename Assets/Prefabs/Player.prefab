@@ -373,6 +373,10 @@ MonoBehaviour:
       NameHash: -510442038
       Synchronize: 1
       ParameterType: 4
+    - name: PushSpeed
+      NameHash: 1091152706
+      Synchronize: 1
+      ParameterType: 1
   AnimatorParametersExpanded: 0
 --- !u!114 &-3439849314303519614
 MonoBehaviour:
@@ -388,6 +392,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimatorController
   ShowTopMostFoldoutHeaderGroup: 1
   speedDampTime: 0.1
+  pushSpeedDampTime: 0.05
 --- !u!1 &7378930858988388735
 GameObject:
   m_ObjectHideFlags: 0
@@ -413,7 +418,7 @@ Transform:
   m_GameObject: {fileID: 7378930858988388735}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.53, z: 0}
+  m_LocalPosition: {x: 0, y: 1.821, z: 0.284}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

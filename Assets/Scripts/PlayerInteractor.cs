@@ -13,24 +13,31 @@ public class PlayerInteractor : NetworkBehaviour
     private ActionInteractable heldInteractable;
     private PushableObject activePushable;
 
+    // ── NetworkVariables — sincronizadas a todos los clientes ─────────────
     private NetworkVariable<bool> netIsPushing = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    private bool _isPushingLocal;
+    private NetworkVariable<bool> netIsHolding = new NetworkVariable<bool>(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
 
+    // ── Estado local ──────────────────────────────────────────────────────
+    private bool _isPushingLocal;
+    private bool _isHoldingLocal;
+
+    // ── API pública ───────────────────────────────────────────────────────
+    // Owner usa valor local (sin latencia).
+    // Remoto usa NetworkVariable (sincronizado) → Animator del segundo jugador funciona.
     public bool IsPushing => IsOwner ? _isPushingLocal : netIsPushing.Value;
-    public bool IsHolding => heldInteractable != null;
+    public bool IsHolding => IsOwner ? _isHoldingLocal : netIsHolding.Value;
     public Transform HoldPoint => holdPoint;
     public Camera MainCamera => mainCamera;
     public Vector2 MoveInput => input != null ? input.MoveInput : Vector2.zero;
-
-    /// <summary>
-    /// Referencia al PushableObject activo — usada por PlayerAnimatorController
-    /// para leer SyncedPushSpeed y alimentar el Blend Tree.
-    /// </summary>
     public PushableObject ActivePushable => activePushable;
 
     // =========================================================
@@ -115,8 +122,25 @@ public class PlayerInteractor : NetworkBehaviour
     }
 
     // =========================================================
-    // API — llamada por PushableObject y GrabbableObject
+    // API — llamada por GrabbableObject
     // =========================================================
+
+    public void SetHeldInteractable(ActionInteractable interactable)
+    {
+        heldInteractable = interactable;
+        _isHoldingLocal = true;
+        SyncHoldingServerRpc(true);
+    }
+
+    public void ClearHeldInteractable(ActionInteractable interactable)
+    {
+        if (heldInteractable != interactable) return;
+        heldInteractable = null;
+        _isHoldingLocal = false;
+        SyncHoldingServerRpc(false);
+    }
+
+    // ── API — llamada por PushableObject ──────────────────────────────────
 
     public void StartPush(PushableObject pushable, Vector3 snapPosition)
     {
@@ -133,13 +157,14 @@ public class PlayerInteractor : NetworkBehaviour
         SyncPushingServerRpc(false);
     }
 
-    public void SetHeldInteractable(ActionInteractable interactable)
-        => heldInteractable = interactable;
+    // =========================================================
+    // SERVER RPCs — sincronizar a todos los clientes
+    // =========================================================
 
-    public void ClearHeldInteractable(ActionInteractable interactable)
+    [ServerRpc]
+    private void SyncHoldingServerRpc(bool holding)
     {
-        if (heldInteractable == interactable)
-            heldInteractable = null;
+        netIsHolding.Value = holding;
     }
 
     [ServerRpc]
