@@ -1,37 +1,12 @@
 using UnityEngine;
 using Unity.Netcode;
-using Unity.Netcode.Components;
 
 /// <summary>
-/// FIXES respecto a versión anterior:
+/// Movimiento, salto y ground check del jugador online.
 ///
-///   1. El Rigidbody NUNCA se pone kinematic en el owner.
-///      Solo el jugador REMOTO usa isKinematic = true.
-///      Esto resuelve "Setting linear velocity of a kinematic body is not supported".
-///
-///   2. ClientNetworkTransform en conflicto:
-///      Si el prefab tiene ClientNetworkTransform, ese componente
-///      pone el Rigidbody en kinematic automáticamente en clientes no-owner.
-///      El owner mantiene física real — eso es lo correcto.
-///
-///   3. El salto usa rb.AddForce en lugar de asignar linearVelocity directamente.
-///      AddForce respeta el modo del Rigidbody y es más estable en Unity 6.
-///
-///   4. Coyote time mantenido para evitar flickering de IsGrounded.
-///
-/// SETUP DEL PREFAB (importante):
-///   Rigidbody:
-///     - Is Kinematic: FALSE (nunca activarlo en el prefab)
-///     - Collision Detection: Continuous
-///     - Freeze Rotation: X ✓  Y ✓  Z ✓  (evita que el personaje se caiga)
-///     - Interpolation: Interpolate
-///   Componentes de red:
-///     - NetworkObject ✓
-///     - ClientNetworkTransform ✓  (NO usar NetworkTransform — ese es server-auth)
-///   Ground Check:
-///     - Crear Transform hijo llamado "GroundCheck" en los pies del personaje
-///     - Asignarlo en el Inspector de este script
-///     - Layer del suelo debe estar en groundMask
+/// CAMBIO respecto a versión anterior:
+///   - HandleJump bloquea el salto cuando interactor.IsPushing es true.
+///     Antes solo bloqueaba el movimiento horizontal, no el salto.
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : NetworkBehaviour
@@ -59,18 +34,12 @@ public class PlayerController : NetworkBehaviour
     private float coyoteTimer;
     private bool lastSentGrounded;
 
-    // Solo se actualiza cuando el valor CAMBIA — no satura la red
     private NetworkVariable<bool> netIsGrounded = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    /// <summary>
-    /// Owner → valor local (sin latencia).
-    /// Remoto → NetworkVariable (sincronizado).
-    /// PlayerAnimatorController usa esta propiedad.
-    /// </summary>
     public bool IsGrounded => IsOwner ? localIsGrounded : netIsGrounded.Value;
 
     // =========================================================
@@ -86,23 +55,12 @@ public class PlayerController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (IsOwner)
-        {
-            // Owner: física activa, el Rigidbody mueve al personaje
-            rb.isKinematic = false;
-        }
-        else
-        {
-            // Remoto: posición viene del ClientNetworkTransform, no de física
-            rb.isKinematic = true;
-        }
-
-        // Forzar sincronización inicial
+        rb.isKinematic = !IsOwner;
         lastSentGrounded = !localIsGrounded;
     }
 
     // =========================================================
-    // LOOP — solo corre lógica en el owner
+    // LOOP
     // =========================================================
 
     private void Update()
@@ -125,12 +83,13 @@ public class PlayerController : NetworkBehaviour
 
     private void HandleMove()
     {
+        // El movimiento libre está bloqueado mientras empuja —
+        // PushableObject.ApplyPushServerRpc mueve al jugador directamente.
         if (interactor != null && interactor.IsPushing) return;
 
         Vector2 raw = input.MoveInput;
         Vector3 move = new Vector3(raw.x, 0f, raw.y);
 
-        // Preservar velocidad Y para que la gravedad siga funcionando
         rb.linearVelocity = new Vector3(
             move.x * moveSpeed,
             rb.linearVelocity.y,
@@ -143,20 +102,21 @@ public class PlayerController : NetworkBehaviour
 
     // =========================================================
     // SALTO
+    // Bloqueado mientras empuja — el jugador debe soltar la roca
+    // (presionar Acción) antes de poder saltar.
     // =========================================================
 
     private void HandleJump()
     {
+        // Bloqueo explícito: ni mover ni saltar mientras se empuja
         if (interactor != null && interactor.IsPushing) return;
         if (!input.JumpPressed || !localIsGrounded) return;
 
-        // Resetear velocidad Y antes de aplicar el impulso
-        // para que saltos desde rampas sean consistentes
+        // Resetear Y antes del impulso para saltos consistentes
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
 
-        // Forzar IsGrounded = false inmediatamente
-        // para que el Animator arranque Jumping Up en este mismo frame
+        // Forzar IsGrounded false inmediatamente → Animator arranca Jumping Up este frame
         localIsGrounded = false;
         coyoteTimer = 0f;
         SyncGrounded();
@@ -209,7 +169,7 @@ public class PlayerController : NetworkBehaviour
     }
 
     // =========================================================
-    // GIZMOS — visualizar ground check en Scene View
+    // GIZMOS
     // =========================================================
 
     private void OnDrawGizmosSelected()

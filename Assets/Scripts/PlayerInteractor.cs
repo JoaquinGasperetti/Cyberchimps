@@ -1,14 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
 
-/// <summary>
-/// Maneja toda la interacción del jugador con el mundo: agarrar objetos y empujar cajas.
-/// Solo corre en el owner — se desactiva en jugadores remotos.
-///
-/// FIX aplicado: IsPushing ahora es una NetworkVariable en lugar de una propiedad local,
-/// así PlayerAnimatorController puede leerla correctamente en todos los clientes
-/// (antes el remoto siempre veía IsPushing = false).
-/// </summary>
 public class PlayerInteractor : NetworkBehaviour
 {
     [SerializeField] private float interactionRadius = 2f;
@@ -21,12 +13,13 @@ public class PlayerInteractor : NetworkBehaviour
     private ActionInteractable heldInteractable;
     private PushableObject activePushable;
 
-    // NetworkVariable para que el Animator del jugador remoto también vea IsPushing
     private NetworkVariable<bool> netIsPushing = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
+
+    private bool _isPushingLocal;
 
     public bool IsPushing => IsOwner ? _isPushingLocal : netIsPushing.Value;
     public bool IsHolding => heldInteractable != null;
@@ -34,7 +27,11 @@ public class PlayerInteractor : NetworkBehaviour
     public Camera MainCamera => mainCamera;
     public Vector2 MoveInput => input != null ? input.MoveInput : Vector2.zero;
 
-    private bool _isPushingLocal;
+    /// <summary>
+    /// Referencia al PushableObject activo — usada por PlayerAnimatorController
+    /// para leer SyncedPushSpeed y alimentar el Blend Tree.
+    /// </summary>
+    public PushableObject ActivePushable => activePushable;
 
     // =========================================================
     // INIT
@@ -62,7 +59,6 @@ public class PlayerInteractor : NetworkBehaviour
         if (!IsOwner) return;
         if (input == null || !input.ActionPressedThisFrame) return;
 
-        // Prioridad: objeto en mano → empujando → buscar nuevo
         if (heldInteractable != null)
         {
             heldInteractable.Interact(this);
@@ -88,7 +84,7 @@ public class PlayerInteractor : NetworkBehaviour
     }
 
     // =========================================================
-    // BÚSQUEDA DE INTERACTUABLES
+    // BÚSQUEDA
     // =========================================================
 
     private ActionInteractable FindBestInteractable()
@@ -146,7 +142,6 @@ public class PlayerInteractor : NetworkBehaviour
             heldInteractable = null;
     }
 
-    // ── Sincronizar IsPushing a todos los clientes ────────────────────────
     [ServerRpc]
     private void SyncPushingServerRpc(bool pushing)
     {

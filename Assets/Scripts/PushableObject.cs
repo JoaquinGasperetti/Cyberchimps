@@ -1,21 +1,23 @@
 using UnityEngine;
 using Unity.Netcode;
 
-/// <summary>
-/// Objeto empujable sincronizado en red.
-/// REQUERIDO en el prefab: NetworkObject.
-/// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class PushableObject : ActionInteractable
 {
-    [SerializeField] private float pushSpeed = 2f;
-    [SerializeField] private float snapDistance = 1f;
+    [Header("Empuje")]
+    [SerializeField] private float pushSpeed = 3f;
+    [SerializeField] private float snapDistance = 1.2f;
 
     private Rigidbody rb;
 
-    // ulong.MaxValue = nadie empujando
     private NetworkVariable<ulong> pusherClientId = new NetworkVariable<ulong>(
         ulong.MaxValue,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    private NetworkVariable<Vector3> pushAxis = new NetworkVariable<Vector3>(
+        Vector3.zero,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
@@ -26,9 +28,20 @@ public class PushableObject : ActionInteractable
         NetworkVariableWritePermission.Server
     );
 
-    // Solo relevante en el servidor
+    // PushSpeed sincronizado para que el Animator del remoto también lo reciba
+    private NetworkVariable<float> syncedPushSpeed = new NetworkVariable<float>(
+        0f,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
+    public float SyncedPushSpeed => syncedPushSpeed.Value;
+
     private PlayerInteractor activeInteractorServer;
-    private Vector3 pushOffset;
+
+    // =========================================================
+    // INIT
+    // =========================================================
 
     private void Awake()
     {
@@ -48,27 +61,31 @@ public class PushableObject : ActionInteractable
         syncedVelocity.OnValueChanged -= OnVelocityChanged;
     }
 
+    // =========================================================
+    // CALLBACKS
+    // =========================================================
+
     private void OnPusherChanged(ulong previous, ulong current)
     {
         bool isPushed = current != ulong.MaxValue;
         rb.isKinematic = !isPushed;
 
         if (!isPushed)
+        {
             rb.linearVelocity = Vector3.zero;
+        }
 
-        // Avisar al interactor LOCAL (si es que somos nosotros los que empujamos/dejamos)
         PlayerInteractor local = PlayerInputHandler.LocalInstance?.GetComponent<PlayerInteractor>();
         if (local == null) return;
 
         if (isPushed && current == local.OwnerClientId)
         {
-            // Calculamos snap position localmente
-            Vector3 dir = (local.transform.position - transform.position).normalized;
-            Vector3 snap = transform.position + dir * snapDistance;
-            local.StartPush(this, snap);
+            Vector3 snapPos = transform.position - pushAxis.Value * snapDistance;
+            snapPos.y = local.transform.position.y;
+            local.StartPush(this, snapPos);
 
             Vector3 lookDir = transform.position - local.transform.position;
-            lookDir.y = 0;
+            lookDir.y = 0f;
             if (lookDir.sqrMagnitude > 0.001f)
                 local.transform.rotation = Quaternion.LookRotation(lookDir);
         }
@@ -80,10 +97,13 @@ public class PushableObject : ActionInteractable
 
     private void OnVelocityChanged(Vector3 previous, Vector3 current)
     {
-        // Los clientes aplican la velocidad recibida del servidor
         if (!IsServer)
             rb.linearVelocity = current;
     }
+
+    // =========================================================
+    // INTERACCIÓN
+    // =========================================================
 
     public override bool CanInteract(PlayerInteractor interactor)
     {
@@ -93,66 +113,89 @@ public class PushableObject : ActionInteractable
 
     public override void Interact(PlayerInteractor interactor)
     {
-        InteractServerRpc(interactor.OwnerClientId);
+        InteractServerRpc(interactor.OwnerClientId, interactor.transform.position);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void InteractServerRpc(ulong clientId)
+    private void InteractServerRpc(ulong clientId, Vector3 playerPosition)
     {
         if (pusherClientId.Value == clientId)
         {
-            // Ya estaba empujando → salir
             activeInteractorServer = null;
             pusherClientId.Value = ulong.MaxValue;
             syncedVelocity.Value = Vector3.zero;
+            syncedPushSpeed.Value = 0f;
+            pushAxis.Value = Vector3.zero;
         }
         else if (pusherClientId.Value == ulong.MaxValue)
         {
-            // Nadie empujando → entrar
             PlayerInteractor interactor = FindInteractorByClientId(clientId);
             if (interactor == null) return;
 
             activeInteractorServer = interactor;
-            Vector3 dir = (interactor.transform.position - transform.position).normalized;
-            pushOffset = transform.position + dir * snapDistance - transform.position;
 
+            Vector3 dir = (transform.position - playerPosition);
+            dir.y = 0f;
+            dir.Normalize();
+            pushAxis.Value = SnapToCardinalAxis(dir);
             pusherClientId.Value = clientId;
         }
     }
 
-    /// <summary>
-    /// Llamado desde PlayerInteractor.FixedUpdate del owner local.
-    /// </summary>
+    // =========================================================
+    // APLICAR EMPUJE
+    // Solo hacia adelante (proyección positiva sobre el eje).
+    // Si el jugador empuja hacia atrás o perpendicular → sin efecto.
+    // =========================================================
+
     public void ApplyPush(Vector2 input, Camera cam)
     {
         if (cam == null) return;
 
         Vector3 forward = Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up).normalized;
-        Vector3 right   = Vector3.ProjectOnPlane(cam.transform.right,   Vector3.up).normalized;
-        Vector3 move    = right * input.x + forward * input.y;
+        Vector3 right = Vector3.ProjectOnPlane(cam.transform.right, Vector3.up).normalized;
+        Vector3 moveDir = right * input.x + forward * input.y;
 
-        Vector3 velocity = new Vector3(move.x * pushSpeed, rb.linearVelocity.y, move.z * pushSpeed);
-        ApplyPushServerRpc(velocity);
+        // Proyectar sobre el eje fijo
+        float projection = Vector3.Dot(moveDir, pushAxis.Value);
+
+        // Solo hacia adelante: ignorar input negativo (hacia atrás)
+        projection = Mathf.Max(0f, projection);
+
+        Vector3 velocity = pushAxis.Value * (projection * pushSpeed);
+        float speed = projection; // 0 = parado, 1 = empujando a fondo
+
+        ApplyPushServerRpc(velocity, speed);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void ApplyPushServerRpc(Vector3 velocity)
+    private void ApplyPushServerRpc(Vector3 velocity, float speed)
     {
         if (pusherClientId.Value == ulong.MaxValue) return;
 
+        velocity.y = rb.linearVelocity.y;
         rb.linearVelocity = velocity;
         syncedVelocity.Value = velocity;
+        syncedPushSpeed.Value = speed; // 0–1, alimenta el Blend Tree del Animator
 
-        // Mantener al player pegado (en el servidor, se propaga via NetworkTransform del player)
         if (activeInteractorServer != null)
         {
-            Vector3 targetPos = transform.position + pushOffset;
-            activeInteractorServer.transform.position = new Vector3(
-                targetPos.x,
-                activeInteractorServer.transform.position.y,
-                targetPos.z
-            );
+            Vector3 targetPos = transform.position - pushAxis.Value * snapDistance;
+            targetPos.y = activeInteractorServer.transform.position.y;
+            activeInteractorServer.transform.position = targetPos;
         }
+    }
+
+    // =========================================================
+    // HELPERS
+    // =========================================================
+
+    private static Vector3 SnapToCardinalAxis(Vector3 dir)
+    {
+        if (Mathf.Abs(dir.x) >= Mathf.Abs(dir.z))
+            return new Vector3(Mathf.Sign(dir.x), 0f, 0f);
+        else
+            return new Vector3(0f, 0f, Mathf.Sign(dir.z));
     }
 
     private static PlayerInteractor FindInteractorByClientId(ulong clientId)
