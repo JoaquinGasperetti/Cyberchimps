@@ -18,7 +18,7 @@ GameObject:
   m_TagString: Box
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &3959524324728741484
 Transform:
@@ -30,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 2.34807, y: 0.22, z: -2.22}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_LocalScale: {x: 4.1362443, y: 0.89568275, z: 1.1164036}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2492792882368678996}
@@ -97,13 +97,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2783880151
+  GlobalObjectIdHash: 2571681023
   InScenePlacedSourceGlobalObjectIdHash: 2783880151
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
+  ActiveSceneSynchronization: 1
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
@@ -125,6 +125,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   priority: 0
   throwForce: 8
+  holdThreshold: 0.4
+  placeDistance: 1.5
 --- !u!1 &4555919255384827482
 GameObject:
   m_ObjectHideFlags: 0
@@ -140,7 +142,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 1
   m_IsActive: 1
 --- !u!4 &4425679383213635005
 Transform:
@@ -246,7 +248,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: Wooden_Box Variant
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 2304049346492555758, guid: e917baa523ece7f4fa7b0e5f3ad362ec, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: -6268150728345259414, guid: e917baa523ece7f4fa7b0e5f3ad362ec, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
