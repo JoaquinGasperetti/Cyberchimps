@@ -1,0 +1,45 @@
+# MTL file - created by a modified js OBJExporter
+
+newmtl Crate_Grey
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.75
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.072271 0.072272 0.072272
+Ke 0 0 0
+
+newmtl Button_Red
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.75
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.800228 0.010442 0.008784
+Ke 0 0 0
+
+newmtl Button_Blue
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.75
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.005545 0.144708 0.800735
+Ke 0 0 0
+
+newmtl AmmoBlue
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.75
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0 0.456411 0.708376
+Ke 0 0 0
