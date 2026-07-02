@@ -2,6 +2,16 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+
+/// <summary>
+/// Maneja el flujo del nivel: countdown inicial, panel de resultados y estrellas.
+///
+/// CAMBIO IMPORTANTE:
+///   El timer YA NO se lleva localmente acá (antes "currentTime" se decrementaba
+///   en Update() de forma independiente en cada cliente → desync entre jugadores).
+///   Ahora LevelManager solo LEE y MUESTRA el tiempo que vive en LevelTimer
+///   (NetworkVariable, autoridad del servidor, sincronizado para ambos jugadores).
+/// </summary>
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
@@ -12,7 +22,6 @@ public class LevelManager : MonoBehaviour
 
     [Header("Timer")]
     [SerializeField] private TMP_Text timerText;
-    [SerializeField] private float levelTime = 120f;
 
     [Header("Time Bonus")]
     [SerializeField] private TMP_Text bonusTimeText;
@@ -32,12 +41,10 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private string levelSelectorScene = "LevelSelector";
     private Coroutine bonusTextCoroutine;
 
-    private float currentTime;
-    private bool timerRunning;
-
     public bool CanPlay { get; private set; }
 
-    public float CurrentTime => currentTime;
+    /// <summary>Tiempo restante — ahora viene siempre de LevelTimer (sincronizado).</summary>
+    public float CurrentTime => LevelTimer.Instance != null ? LevelTimer.Instance.RemainingTime : 0f;
 
     private void Awake()
     {
@@ -53,19 +60,34 @@ public class LevelManager : MonoBehaviour
 
     private void Start()
     {
-        currentTime = levelTime;
-
         CanPlay = false;
-
-        StartCoroutine(StartCountdown());
+        StartCoroutine(WaitForTimerAndStart());
     }
 
-    private void Update()
+    private void OnDestroy()
     {
-        if (!timerRunning)
-            return;
+        if (LevelTimer.Instance != null)
+        {
+            LevelTimer.Instance.OnTimeChanged -= HandleTimeChanged;
+            LevelTimer.Instance.OnTimeUp -= HandleTimeUp;
+            LevelTimer.Instance.OnBonusTimeAdded -= HandleBonusTimeAdded;
+        }
+    }
 
-        UpdateTimer();
+    private System.Collections.IEnumerator WaitForTimerAndStart()
+    {
+        // LevelTimer se spawnea en red al cargar la escena — esperamos a que exista
+        // antes de suscribirnos, para no perder el primer valor.
+        while (LevelTimer.Instance == null)
+            yield return null;
+
+        LevelTimer.Instance.OnTimeChanged += HandleTimeChanged;
+        LevelTimer.Instance.OnTimeUp += HandleTimeUp;
+        LevelTimer.Instance.OnBonusTimeAdded += HandleBonusTimeAdded;
+
+        UpdateTimerUI(LevelTimer.Instance.RemainingTime);
+
+        yield return StartCoroutine(StartCountdown());
     }
 
     private System.Collections.IEnumerator StartCountdown()
@@ -87,21 +109,32 @@ public class LevelManager : MonoBehaviour
         countdownText.gameObject.SetActive(false);
 
         CanPlay = true;
-        timerRunning = true;
-    }
-    public void AddTime(float amount)
-    {
-        currentTime += amount;
 
+        // Solo tiene efecto real en el servidor (no-op seguro en los clientes).
+        LevelTimer.Instance.StartTimer();
+    }
+
+    private void HandleTimeChanged(float newTime)
+    {
+        UpdateTimerUI(newTime);
+    }
+
+    private void HandleTimeUp()
+    {
+        if (timerText != null)
+            timerText.color = Color.red;
+
+        // Acá se puede enganchar una derrota/fin de nivel por tiempo si el diseño lo pide.
+    }
+
+    private void HandleBonusTimeAdded(float amount)
+    {
         if (bonusTextCoroutine != null)
-        {
             StopCoroutine(bonusTextCoroutine);
-        }
 
         bonusTextCoroutine = StartCoroutine(ShowBonusText(amount));
-
-        UpdateTimerUI();
     }
+
     private System.Collections.IEnumerator ShowBonusText(float amount)
     {
         if (bonusTimeText == null)
@@ -115,35 +148,14 @@ public class LevelManager : MonoBehaviour
         bonusTimeText.gameObject.SetActive(false);
     }
 
-    private void UpdateTimer()
+    private void UpdateTimerUI(float time)
     {
-        currentTime -= Time.deltaTime;
+        if (timerText == null) return;
 
-        if (currentTime <= 0f)
-        {
-            currentTime = 0f;
-        }
-
-        UpdateTimerUI();
+        timerText.text = FormatTime(time);
+        timerText.color = time <= 0f ? Color.red : timerText.color;
     }
 
-    private void UpdateTimerUI()
-    {
-        int minutes = Mathf.FloorToInt(currentTime / 60f);
-        int seconds = Mathf.FloorToInt(currentTime % 60f);
-
-        timerText.text = FormatTime(currentTime);
-
-        if (currentTime <= 0f)
-        {
-            timerText.color = Color.red;
-        }
-    }
-
-    public void StopTimer()
-    {
-        timerRunning = false;
-    }
     private void UpdateStarsUI(int earnedStars)
     {
         for (int i = 0; i < stars.Length; i++)
@@ -153,10 +165,12 @@ public class LevelManager : MonoBehaviour
                 : emptyStar;
         }
     }
+
     public bool HasTimeStar()
     {
-        return currentTime > 0f;
+        return CurrentTime > 0f;
     }
+
     private int CalculateStars()
     {
         int earnedStars = 0;
@@ -174,6 +188,7 @@ public class LevelManager : MonoBehaviour
 
         return earnedStars;
     }
+
     private void ShowResults(int stars)
     {
         if (levelCompletePanel != null)
@@ -183,11 +198,11 @@ public class LevelManager : MonoBehaviour
 
         if (finalTimeText != null)
         {
-            finalTimeText.text = FormatTime(currentTime);
+            finalTimeText.text = FormatTime(CurrentTime);
         }
         UpdateStarsUI(stars);
     }
-   
+
     private string FormatTime(float time)
     {
         int minutes = Mathf.FloorToInt(time / 60f);
@@ -203,7 +218,8 @@ public class LevelManager : MonoBehaviour
 
         levelCompleted = true;
 
-        StopTimer();
+        if (LevelTimer.Instance != null)
+            LevelTimer.Instance.StopTimer();
 
         CanPlay = false;
 
@@ -217,12 +233,13 @@ public class LevelManager : MonoBehaviour
         Scene currentScene = SceneManager.GetActiveScene();
 
         SceneManager.LoadScene(currentScene.buildIndex);
-
     }
+
     public void ReturnToLevelSelector()
     {
         SceneManager.LoadScene(levelSelectorScene);
     }
+
     private bool HasCyberdataStar()
     {
         if (CyberdataManager.Instance == null)

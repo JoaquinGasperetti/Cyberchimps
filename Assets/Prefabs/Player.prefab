@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 3370368948527786409}
   - component: {fileID: 8761654249883378555}
   - component: {fileID: -3439849314303519614}
+  - component: {fileID: -4322129683516064075}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -174,6 +175,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   holdPoint: {fileID: 2648649671129263363}
+  holdThreshold: 0.4
 --- !u!114 &8797736973786346375
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -393,6 +395,19 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   speedDampTime: 0.1
   pushSpeedDampTime: 0.05
+--- !u!114 &-4322129683516064075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6622215444113177547}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f771f3a958628a4cbc4995856e61838, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCyberdataWallet
+  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!1 &7378930858988388735
 GameObject:
   m_ObjectHideFlags: 0

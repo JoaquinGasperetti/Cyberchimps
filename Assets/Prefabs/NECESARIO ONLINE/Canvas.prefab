@@ -1393,7 +1393,7 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
-        - m_Target: {fileID: 1188766711830402244}
+        - m_Target: {fileID: 0}
           m_TargetAssemblyTypeName: MobileUIConnectorOffline, Assembly-CSharp
           m_MethodName: OnJumpDown
           m_Mode: 1
@@ -1421,7 +1421,7 @@ MonoBehaviour:
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
-        - m_Target: {fileID: 1188766711830402244}
+        - m_Target: {fileID: 0}
           m_TargetAssemblyTypeName: MobileUIConnectorOffline, Assembly-CSharp
           m_MethodName: OnJumpUp
           m_Mode: 1
@@ -1723,6 +1723,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelTimer
   ShowTopMostFoldoutHeaderGroup: 1
+  levelDuration: 120
   timerText: {fileID: 5825895869639551804}
 --- !u!1 &4645057900528018561
 GameObject:
@@ -1738,7 +1739,6 @@ GameObject:
   - component: {fileID: 2846288779055951018}
   - component: {fileID: 687975355983598619}
   - component: {fileID: 6080812171644759657}
-  - component: {fileID: 1188766711830402244}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -1852,7 +1852,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CyberdataUI
   cyberdataText: {fileID: 6722237823490949186}
-  globalText: {fileID: 2468016980759018832}
+  globalText: {fileID: 0}
 --- !u!114 &6080812171644759657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1865,18 +1865,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b4d35d16c22e7944825f8756cf5f351, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MobileUIConnector
---- !u!114 &1188766711830402244
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4645057900528018561}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa4faa27836ca674b9cfdc49626f5d89, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MobileUIConnectorOffline
 --- !u!1 &5662407907239741172
 GameObject:
   m_ObjectHideFlags: 0
@@ -2615,7 +2603,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1188766711830402244}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: MobileUIConnectorOffline, Assembly-CSharp
         m_MethodName: OnActionPressed
         m_Mode: 1
