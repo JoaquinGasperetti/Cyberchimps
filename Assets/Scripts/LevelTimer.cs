@@ -50,8 +50,21 @@ public class LevelTimer : NetworkBehaviour
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else { Destroy(gameObject); return; }
+        if (Instance != null && Instance != this)
+        {
+            // Destruir SOLO el componente duplicado, nunca el GameObject entero:
+            // el duplicado podría estar en el Canvas o en un NetworkObject spawneado.
+            Debug.LogWarning($"[LevelTimer] Duplicado en '{name}' — ya existe uno en '{Instance.name}'. Se elimina el componente duplicado.");
+            Destroy(this);
+            return;
+        }
+        Instance = this;
+    }
+
+    public override void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+        base.OnDestroy();
     }
 
     public override void OnNetworkSpawn()

@@ -92,21 +92,30 @@ public class LevelManager : MonoBehaviour
 
     private System.Collections.IEnumerator StartCountdown()
     {
-        countdownText.gameObject.SetActive(true);
+        // countdownText puede no estar asignado en algunas escenas —
+        // sin el guard, el NRE mataba la corutina y StartTimer() nunca se llamaba.
+        if (countdownText != null)
+        {
+            countdownText.gameObject.SetActive(true);
 
-        countdownText.text = "3";
-        yield return new WaitForSeconds(1f);
+            countdownText.text = "3";
+            yield return new WaitForSeconds(1f);
 
-        countdownText.text = "2";
-        yield return new WaitForSeconds(1f);
+            countdownText.text = "2";
+            yield return new WaitForSeconds(1f);
 
-        countdownText.text = "1";
-        yield return new WaitForSeconds(1f);
+            countdownText.text = "1";
+            yield return new WaitForSeconds(1f);
 
-        countdownText.text = "READY!";
-        yield return new WaitForSeconds(1f);
+            countdownText.text = "READY!";
+            yield return new WaitForSeconds(1f);
 
-        countdownText.gameObject.SetActive(false);
+            countdownText.gameObject.SetActive(false);
+        }
+        else
+        {
+            yield return new WaitForSeconds(countdownDuration);
+        }
 
         CanPlay = true;
 
