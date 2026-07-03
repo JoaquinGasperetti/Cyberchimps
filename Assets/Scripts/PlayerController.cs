@@ -32,10 +32,18 @@ public class PlayerController : NetworkBehaviour
     // ── Ground state ──────────────────────────────────────────────────────
     private bool localIsGrounded;
     private float coyoteTimer;
-    private bool lastSentGrounded;
 
+    // null = todavía no se envió ningún estado → el primer CheckGround SIEMPRE
+    // sincroniza. Antes era bool y el "truco" lastSentGrounded = !localIsGrounded
+    // fallaba cuando el jugador spawneaba apoyado en el suelo: el primer estado
+    // real (true) coincidía con el invertido y nunca se enviaba → el jugador
+    // remoto quedaba con la animación de caída hasta el primer salto.
+    private bool? lastSentGrounded;
+
+    // Arranca en true: los jugadores spawnean apoyados, así el remoto no se ve
+    // cayendo durante los primeros frames antes de la primera sincronización.
     private NetworkVariable<bool> netIsGrounded = new NetworkVariable<bool>(
-        false,
+        true,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
@@ -56,7 +64,7 @@ public class PlayerController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         rb.isKinematic = !IsOwner;
-        lastSentGrounded = !localIsGrounded;
+        lastSentGrounded = null;
     }
 
     // =========================================================

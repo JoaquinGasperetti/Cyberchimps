@@ -58,13 +58,43 @@ public class LobbyManager : MonoBehaviour
         buttonDisconnect.onClick.AddListener(OnDisconnectClicked);
         buttonStartGame.onClick.AddListener(OnStartGameClicked);
 
-        ShowConnectPanel();
+        // Si volvemos al Lobby con la sesión todavía viva (desde el menú de
+        // pausa o el panel de nivel completado), restaurar el panel de lobby
+        // en lugar de mostrar la pantalla de conexión.
+        if (NetworkSessionManager.Instance != null && NetworkSessionManager.Instance.IsConnected)
+        {
+            RestoreActiveSession();
+        }
+        else
+        {
+            ShowConnectPanel();
+        }
 
         if (NetworkSessionManager.Instance != null)
         {
             NetworkSessionManager.Instance.OnPlayerConnected += OnPlayerConnected;
             NetworkSessionManager.Instance.OnPlayerDisconnected += OnPlayerDisconnected;
         }
+    }
+
+    private void RestoreActiveSession()
+    {
+        bool isHost = NetworkSessionManager.Instance.IsHost;
+        string code = NetworkSessionManager.Instance.CurrentSession != null
+            ? NetworkSessionManager.Instance.CurrentSession.Code
+            : "";
+
+        // ConnectedClientsList solo es confiable en el host; el cliente, si
+        // está conectado, sabe que ambos jugadores existen.
+        secondPlayerConnected = !isHost
+            || (NetworkManager.Singleton != null
+                && NetworkManager.Singleton.ConnectedClientsList.Count > 1);
+
+        ShowLobbyPanel(isHost, code);
+
+        SpawnModel(player1Slot, ref model1Instance);
+        if (secondPlayerConnected)
+            SpawnModel(player2Slot, ref model2Instance);
     }
 
     private void OnDestroy()

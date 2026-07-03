@@ -39,6 +39,12 @@ public class LevelManager : MonoBehaviour
 
     private bool levelCompleted;
     [SerializeField] private string levelSelectorScene = "LevelSelector";
+
+    [Header("Flujo de nivel")]
+    [SerializeField] private string lobbyScene = "Lobby";
+    [Tooltip("Escena del siguiente nivel. Vacío = el panel de completado solo ofrece volver al Lobby.")]
+    [SerializeField] private string nextLevelScene = "";
+
     private Coroutine bonusTextCoroutine;
 
     public bool CanPlay { get; private set; }
@@ -61,6 +67,7 @@ public class LevelManager : MonoBehaviour
     private void Start()
     {
         CanPlay = false;
+        PauseMenuUI.Ensure();
         StartCoroutine(WaitForTimerAndStart());
     }
 
@@ -167,8 +174,13 @@ public class LevelManager : MonoBehaviour
 
     private void UpdateStarsUI(int earnedStars)
     {
+        if (stars == null) return;
+
         for (int i = 0; i < stars.Length; i++)
         {
+            // En algunas escenas las estrellas no están asignadas — evitar NRE
+            if (stars[i] == null) continue;
+
             stars[i].sprite = i < earnedStars
                 ? filledStar
                 : emptyStar;
@@ -198,19 +210,73 @@ public class LevelManager : MonoBehaviour
         return earnedStars;
     }
 
-    private void ShowResults(int stars)
+    private void ShowResults(int earnedStars)
     {
         if (levelCompletePanel != null)
         {
+            // Camino "diseñado en editor": panel armado a mano en la escena
             levelCompletePanel.SetActive(true);
+
+            if (finalTimeText != null)
+                finalTimeText.text = FormatTime(CurrentTime);
+
+            UpdateStarsUI(earnedStars);
+            return;
         }
 
-        if (finalTimeText != null)
-        {
-            finalTimeText.text = FormatTime(CurrentTime);
-        }
-        UpdateStarsUI(stars);
+        // Sin panel asignado → UI generada en runtime, funciona en toda escena.
+        // Solo el host decide a dónde ir; el cliente ve "Esperando al host...".
+        LevelCompleteUI.Show(
+            FormatTime(CurrentTime),
+            earnedStars,
+            IsSceneAuthority(),
+            !string.IsNullOrEmpty(nextLevelScene),
+            GoToLobby,
+            GoToNextLevel);
     }
+
+    // =========================================================
+    // NAVEGACIÓN POST-NIVEL
+    // =========================================================
+
+    /// <summary>
+    /// true si este jugador puede cargar escenas: el host en una sesión de red,
+    /// o cualquiera si se está probando la escena sin red (offline en editor).
+    /// </summary>
+    private bool IsSceneAuthority()
+    {
+        var nm = Unity.Netcode.NetworkManager.Singleton;
+        if (nm == null || !nm.IsListening) return true; // sin red → modo prueba local
+        return nm.IsHost;
+    }
+
+    /// <summary>
+    /// Carga una escena para ambos jugadores si hay sesión (solo host),
+    /// o localmente si se está probando sin red.
+    /// </summary>
+    private void LoadSceneForEveryone(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName)) return;
+
+        var nm = Unity.Netcode.NetworkManager.Singleton;
+        if (nm != null && nm.IsListening)
+        {
+            if (!nm.IsHost)
+            {
+                Debug.LogWarning("[LevelManager] Solo el host puede cargar escenas en red.");
+                return;
+            }
+            NetworkSceneLoader.Instance?.LoadScene(sceneName);
+        }
+        else
+        {
+            SceneManager.LoadScene(sceneName);
+        }
+    }
+
+    public void GoToLobby() => LoadSceneForEveryone(lobbyScene);
+
+    public void GoToNextLevel() => LoadSceneForEveryone(nextLevelScene);
 
     private string FormatTime(float time)
     {
@@ -239,14 +305,13 @@ public class LevelManager : MonoBehaviour
 
     public void RetryLevel()
     {
-        Scene currentScene = SceneManager.GetActiveScene();
-
-        SceneManager.LoadScene(currentScene.buildIndex);
+        // En red debe recargarse vía NetworkSceneManager para ambos jugadores
+        LoadSceneForEveryone(SceneManager.GetActiveScene().name);
     }
 
     public void ReturnToLevelSelector()
     {
-        SceneManager.LoadScene(levelSelectorScene);
+        LoadSceneForEveryone(levelSelectorScene);
     }
 
     private bool HasCyberdataStar()

@@ -32,9 +32,12 @@ public class GoalZone : NetworkBehaviour
     {
         if (!current) return;
 
+        // OnValueChanged corre en TODOS los clientes → el panel de resultados
+        // aparece sincronizado para ambos jugadores.
         LevelTimer.Instance?.StopTimer();
         Debug.Log("META ALCANZADA");
 
-        // Aquí podés llamar a tu pantalla de resultados
+        if (LevelManager.Instance != null)
+            LevelManager.Instance.CompleteLevel();
     }
 }
