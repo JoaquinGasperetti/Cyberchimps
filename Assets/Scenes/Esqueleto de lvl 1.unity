@@ -1296,7 +1296,7 @@ Transform:
   m_GameObject: {fileID: 326065973}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -14.4, y: 2.53, z: -4.87}
+  m_LocalPosition: {x: -49.3, y: 2.53, z: 165}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2847,6 +2847,8 @@ MonoBehaviour:
   filledStar: {fileID: 21300000, guid: 84487d73ca4b791498332d8f6858417f, type: 3}
   emptyStar: {fileID: 21300000, guid: 5b56d9fa0e8bd6e409ed188db38a692c, type: 3}
   levelSelectorScene: LevelSelect
+  lobbyScene: Lobby
+  nextLevelScene: 
 --- !u!1 &833610587
 GameObject:
   m_ObjectHideFlags: 0
@@ -5481,7 +5483,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1.37, y: 0.012, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2.5557938, y: 1, z: 4.2453384}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 164124544}
@@ -5545,7 +5547,7 @@ Transform:
   m_GameObject: {fileID: 1796726547}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -10.19837, y: 2.53, z: -4.87}
+  m_LocalPosition: {x: -45.098373, y: 2.53, z: 165}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
