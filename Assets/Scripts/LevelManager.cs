@@ -40,6 +40,10 @@ public class LevelManager : MonoBehaviour
     private bool levelCompleted;
     [SerializeField] private string levelSelectorScene = "LevelSelector";
 
+    // UI de progreso de la meta ("En la meta: 1/2"), generada en runtime
+    private GameObject goalProgressRoot;
+    private TMP_Text goalProgressText;
+
     [Header("Flujo de nivel")]
     [SerializeField] private string lobbyScene = "Lobby";
     [Tooltip("Escena del siguiente nivel. Vacío = el panel de completado solo ofrece volver al Lobby.")]
@@ -210,7 +214,7 @@ public class LevelManager : MonoBehaviour
         return earnedStars;
     }
 
-    private void ShowResults(int earnedStars)
+    private void ShowResults(int earnedStars, string[] playerStatLines)
     {
         if (levelCompletePanel != null)
         {
@@ -229,6 +233,7 @@ public class LevelManager : MonoBehaviour
         LevelCompleteUI.Show(
             FormatTime(CurrentTime),
             earnedStars,
+            playerStatLines,
             IsSceneAuthority(),
             !string.IsNullOrEmpty(nextLevelScene),
             GoToLobby,
@@ -288,10 +293,21 @@ public class LevelManager : MonoBehaviour
 
     public void CompleteLevel()
     {
+        CompleteLevel(null, null);
+    }
+
+    /// <summary>
+    /// Versión con stats por jugador — GoalZone la llama vía ClientRpc con la
+    /// foto que tomó el servidor (los wallets son privados entre clientes).
+    /// </summary>
+    public void CompleteLevel(ulong[] statClientIds, int[] statCyberdata)
+    {
         if (levelCompleted)
             return;
 
         levelCompleted = true;
+
+        HideGoalProgress();
 
         if (LevelTimer.Instance != null)
             LevelTimer.Instance.StopTimer();
@@ -300,7 +316,72 @@ public class LevelManager : MonoBehaviour
 
         int stars = CalculateStars();
 
-        ShowResults(stars);
+        ShowResults(stars, BuildPlayerStatLines(statClientIds, statCyberdata));
+    }
+
+    // =========================================================
+    // PROGRESO DE LA META ("En la meta: 1/2")
+    // =========================================================
+
+    public void ShowGoalProgress(int current, int required)
+    {
+        if (levelCompleted) return;
+
+        if (current <= 0)
+        {
+            HideGoalProgress();
+            return;
+        }
+
+        if (goalProgressRoot == null)
+        {
+            var canvas = SimpleUI.CreateOverlayCanvas("GoalProgressUI", 350);
+            goalProgressRoot = canvas.gameObject;
+
+            goalProgressText = SimpleUI.CreateText(canvas.transform, "Progress",
+                "", 46f, Vector2.zero, new Vector2(1100f, 70f));
+
+            // Anclar arriba al centro, debajo del timer
+            var rt = goalProgressText.rectTransform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -140f);
+        }
+
+        goalProgressRoot.SetActive(true);
+        goalProgressText.text = current < required
+            ? $"En la meta: {current}/{required} — esperando al otro jugador..."
+            : $"En la meta: {current}/{required}";
+    }
+
+    public void HideGoalProgress()
+    {
+        if (goalProgressRoot != null)
+            goalProgressRoot.SetActive(false);
+    }
+
+    /// <summary>
+    /// Convierte la foto de stats en líneas legibles, ordenadas por clientId
+    /// (Jugador 1 = host). Marca "(vos)" en el jugador local.
+    /// </summary>
+    private string[] BuildPlayerStatLines(ulong[] clientIds, int[] cyberdata)
+    {
+        if (clientIds == null || cyberdata == null || clientIds.Length == 0)
+            return null;
+
+        System.Array.Sort(clientIds, cyberdata);
+
+        ulong localId = Unity.Netcode.NetworkManager.Singleton != null
+            ? Unity.Netcode.NetworkManager.Singleton.LocalClientId
+            : ulong.MaxValue;
+
+        var lines = new string[clientIds.Length];
+        for (int i = 0; i < clientIds.Length; i++)
+        {
+            string who = clientIds[i] == localId ? " (vos)" : "";
+            lines[i] = $"Jugador {i + 1}{who}: {cyberdata[i]} Cyberdatos";
+        }
+        return lines;
     }
 
     public void RetryLevel()
