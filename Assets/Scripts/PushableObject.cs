@@ -1,6 +1,20 @@
 using UnityEngine;
 using Unity.Netcode;
 
+/// <summary>
+/// Objeto empujable sincronizado en red.
+///
+/// MODELO DE SINCRONIZACIÓN (fix de desincronización de cajas):
+///   - La física corre SOLO en el servidor. En los clientes el Rigidbody es
+///     siempre kinematic y la posición llega por el NetworkTransform del prefab
+///     (server-authoritative). Antes cada cliente integraba la velocity
+///     sincronizada por su cuenta y las posiciones divergían con el tiempo.
+///   - El jugador que empuja se pega a la caja LOCALMENTE (ver
+///     PlayerInteractor.FixedUpdate). Antes el servidor escribía la posición
+///     del player, pero el Player usa ClientNetworkTransform (autoridad del
+///     dueño) así que esa escritura peleaba con la sincronización y el
+///     jugador cliente no acompañaba a la caja.
+/// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class PushableObject : ActionInteractable
 {
@@ -22,12 +36,6 @@ public class PushableObject : ActionInteractable
         NetworkVariableWritePermission.Server
     );
 
-    private NetworkVariable<Vector3> syncedVelocity = new NetworkVariable<Vector3>(
-        Vector3.zero,
-        NetworkVariableReadPermission.Everyone,
-        NetworkVariableWritePermission.Server
-    );
-
     // PushSpeed sincronizado para que el Animator del remoto también lo reciba
     private NetworkVariable<float> syncedPushSpeed = new NetworkVariable<float>(
         0f,
@@ -37,7 +45,14 @@ public class PushableObject : ActionInteractable
 
     public float SyncedPushSpeed => syncedPushSpeed.Value;
 
-    private PlayerInteractor activeInteractorServer;
+    /// <summary>ClientId del jugador que está empujando (ulong.MaxValue = nadie).</summary>
+    public ulong PusherClientId => pusherClientId.Value;
+
+    /// <summary>Eje cardinal fijo del empuje actual (para el glue del jugador).</summary>
+    public Vector3 PushAxis => pushAxis.Value;
+
+    /// <summary>Distancia jugador-caja mientras empuja (para el glue del jugador).</summary>
+    public float SnapDistance => snapDistance;
 
     // =========================================================
     // INIT
@@ -52,13 +67,16 @@ public class PushableObject : ActionInteractable
     public override void OnNetworkSpawn()
     {
         pusherClientId.OnValueChanged += OnPusherChanged;
-        syncedVelocity.OnValueChanged += OnVelocityChanged;
+
+        // Los clientes nunca simulan física propia: la posición llega por el
+        // NetworkTransform (server-authoritative) del prefab.
+        if (!IsServer)
+            rb.isKinematic = true;
     }
 
     public override void OnNetworkDespawn()
     {
         pusherClientId.OnValueChanged -= OnPusherChanged;
-        syncedVelocity.OnValueChanged -= OnVelocityChanged;
     }
 
     // =========================================================
@@ -68,11 +86,13 @@ public class PushableObject : ActionInteractable
     private void OnPusherChanged(ulong previous, ulong current)
     {
         bool isPushed = current != ulong.MaxValue;
-        rb.isKinematic = !isPushed;
 
-        if (!isPushed)
+        // Solo el servidor simula; en clientes el rb queda siempre kinematic
+        if (IsServer)
         {
-            rb.linearVelocity = Vector3.zero;
+            rb.isKinematic = !isPushed;
+            if (!isPushed)
+                rb.linearVelocity = Vector3.zero;
         }
 
         PlayerInteractor local = PlayerInputHandler.LocalInstance?.GetComponent<PlayerInteractor>();
@@ -95,12 +115,6 @@ public class PushableObject : ActionInteractable
         }
     }
 
-    private void OnVelocityChanged(Vector3 previous, Vector3 current)
-    {
-        if (!IsServer)
-            rb.linearVelocity = current;
-    }
-
     // =========================================================
     // INTERACCIÓN
     // =========================================================
@@ -121,19 +135,12 @@ public class PushableObject : ActionInteractable
     {
         if (pusherClientId.Value == clientId)
         {
-            activeInteractorServer = null;
             pusherClientId.Value = ulong.MaxValue;
-            syncedVelocity.Value = Vector3.zero;
             syncedPushSpeed.Value = 0f;
             pushAxis.Value = Vector3.zero;
         }
         else if (pusherClientId.Value == ulong.MaxValue)
         {
-            PlayerInteractor interactor = FindInteractorByClientId(clientId);
-            if (interactor == null) return;
-
-            activeInteractorServer = interactor;
-
             Vector3 dir = (transform.position - playerPosition);
             dir.y = 0f;
             dir.Normalize();
@@ -175,15 +182,12 @@ public class PushableObject : ActionInteractable
 
         velocity.y = rb.linearVelocity.y;
         rb.linearVelocity = velocity;
-        syncedVelocity.Value = velocity;
         syncedPushSpeed.Value = speed; // 0–1, alimenta el Blend Tree del Animator
 
-        if (activeInteractorServer != null)
-        {
-            Vector3 targetPos = transform.position - pushAxis.Value * snapDistance;
-            targetPos.y = activeInteractorServer.transform.position.y;
-            activeInteractorServer.transform.position = targetPos;
-        }
+        // NOTA: acá antes se movía el transform del jugador desde el servidor.
+        // Se quitó porque el Player es owner-authoritative (ClientNetworkTransform)
+        // y esa escritura peleaba con la posición que manda el dueño.
+        // Ahora el dueño se pega solo a la caja en PlayerInteractor.FixedUpdate.
     }
 
     // =========================================================
@@ -196,15 +200,5 @@ public class PushableObject : ActionInteractable
             return new Vector3(Mathf.Sign(dir.x), 0f, 0f);
         else
             return new Vector3(0f, 0f, Mathf.Sign(dir.z));
-    }
-
-    private static PlayerInteractor FindInteractorByClientId(ulong clientId)
-    {
-        foreach (var obj in FindObjectsByType<PlayerInteractor>(FindObjectsSortMode.None))
-        {
-            if (obj.OwnerClientId == clientId)
-                return obj;
-        }
-        return null;
     }
 }

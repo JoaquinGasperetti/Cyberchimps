@@ -100,7 +100,19 @@ public class PlayerInteractor : NetworkBehaviour
         if (!IsOwner) return;
 
         if (_isPushingLocal && activePushable != null)
+        {
             activePushable.ApplyPush(input.MoveInput, mainCamera);
+
+            // Mantenerse pegado a la caja DESDE EL DUEÑO: la posición de la
+            // caja llega interpolada por su NetworkTransform y el player la
+            // sigue acá. (El servidor no puede mover al player porque usa
+            // ClientNetworkTransform — autoridad del dueño — y esa escritura
+            // peleaba con la sincronización.)
+            Vector3 target = activePushable.transform.position
+                           - activePushable.PushAxis * activePushable.SnapDistance;
+            target.y = transform.position.y;
+            transform.position = target;
+        }
     }
 
     // =========================================================

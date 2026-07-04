@@ -42,6 +42,9 @@ public class PlayerAnimatorController : NetworkBehaviour
 
     private Vector3 previousPosition;
 
+    // Cache del pushable empujado por este jugador cuando es remoto
+    private PushableObject remotePushable;
+
     // =========================================================
     // INIT
     // =========================================================
@@ -117,9 +120,31 @@ public class PlayerAnimatorController : NetworkBehaviour
         float pushSpeed = 0f;
 
         if (interactor != null && interactor.ActivePushable != null)
+        {
             pushSpeed = interactor.ActivePushable.SyncedPushSpeed;
+        }
+        else
+        {
+            // Jugador REMOTO: ActivePushable solo existe en el dueño, así que
+            // buscamos el pushable cuyo pusher sea este jugador (se cachea).
+            if (remotePushable == null || remotePushable.PusherClientId != OwnerClientId)
+                remotePushable = FindPushableBy(OwnerClientId);
+
+            if (remotePushable != null)
+                pushSpeed = remotePushable.SyncedPushSpeed;
+        }
 
         animator.SetFloat(PushSpeedHash, pushSpeed, pushSpeedDampTime, Time.deltaTime);
+    }
+
+    private static PushableObject FindPushableBy(ulong clientId)
+    {
+        foreach (var pushable in FindObjectsByType<PushableObject>(FindObjectsSortMode.None))
+        {
+            if (pushable.PusherClientId == clientId)
+                return pushable;
+        }
+        return null;
     }
 
     // ── Holding (objeto agarrado) ─────────────────────────────────────────

@@ -92,8 +92,14 @@ public class PlayerController : NetworkBehaviour
     private void HandleMove()
     {
         // El movimiento libre está bloqueado mientras empuja —
-        // PushableObject.ApplyPushServerRpc mueve al jugador directamente.
-        if (interactor != null && interactor.IsPushing) return;
+        // PlayerInteractor.FixedUpdate pega al jugador a la caja.
+        // Se frena la velocidad horizontal para que la física no arrastre
+        // al player mientras el glue le fija la posición.
+        if (interactor != null && interactor.IsPushing)
+        {
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+            return;
+        }
 
         Vector2 raw = input.MoveInput;
         Vector3 move = new Vector3(raw.x, 0f, raw.y);

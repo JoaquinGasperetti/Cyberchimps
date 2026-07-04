@@ -8,12 +8,18 @@ using Unity.Netcode;
 ///   - Tap (soltar rápido < holdThreshold): lanza la caja hacia adelante
 ///   - Hold (mantener >= holdThreshold): suelta la caja en el suelo enfrente del jugador
 ///
-/// Esto permite:
-///   - Lanzar la caja sobre un botón lejano
-///   - Colocar la caja con precisión sobre un botón cercano
+/// MODELO DE SINCRONIZACIÓN (fix de trayectorias divergentes):
+///   - La física corre SOLO en el servidor. En los clientes el Rigidbody es
+///     siempre kinematic y la posición llega por el NetworkTransform del prefab
+///     (server-authoritative). Antes cada cliente simulaba su propia caída y el
+///     lanzamiento se veía distinto en cada pantalla.
+///   - Mientras está sostenida, TODOS los peers pegan la caja al HoldPoint del
+///     jugador que la lleva en LateUpdate (pisa la interpolación del
+///     NetworkTransform → la caja se ve pegada a la mano sin lag).
 ///
 /// SETUP DE LA CAJA:
 ///   - NetworkObject ✓
+///   - NetworkTransform (server-authoritative) ✓
 ///   - Rigidbody ✓
 ///   - Tag: "Box"  ← necesario para que PuzzleButton la detecte
 ///   - Collider (no trigger)
@@ -38,9 +44,9 @@ public class GrabbableObject : ActionInteractable
         NetworkVariableWritePermission.Server
     );
 
-    // ── Estado local del hold (solo en el owner) ──────────────────────────
-    private float actionHeldTime;
-    private bool isTrackingHold;
+    // Cache del interactor que sostiene la caja (se resuelve al cambiar holder,
+    // no cada frame — FindObjectsByType por frame era muy caro en mobile)
+    private PlayerInteractor holderInteractor;
 
     private void Awake()
     {
@@ -50,6 +56,15 @@ public class GrabbableObject : ActionInteractable
     public override void OnNetworkSpawn()
     {
         holderClientId.OnValueChanged += OnHolderChanged;
+
+        // Los clientes NUNCA simulan física propia: el NetworkTransform
+        // (server-authoritative) es la única fuente de posición.
+        if (!IsServer)
+            rb.isKinematic = true;
+
+        // Reconexión / late join: si ya estaba sostenida, reflejar el estado
+        if (holderClientId.Value != ulong.MaxValue)
+            OnHolderChanged(ulong.MaxValue, holderClientId.Value);
     }
 
     public override void OnNetworkDespawn()
@@ -64,29 +79,49 @@ public class GrabbableObject : ActionInteractable
     private void OnHolderChanged(ulong previous, ulong current)
     {
         bool isHeld = current != ulong.MaxValue;
-        rb.isKinematic = isHeld;
+
+        // Solo el servidor alterna la simulación; los clientes quedan kinematic
+        if (IsServer)
+            rb.isKinematic = isHeld;
+
+        // En mano no colisiona (no empuja jugadores ni pisa botones)
         rb.detectCollisions = !isHeld;
+
+        holderInteractor = isHeld ? FindInteractorByClientId(current) : null;
     }
 
     // =========================================================
-    // UPDATE — seguir al HoldPoint mientras es sostenida
+    // UPDATE — safeguard del servidor
+    // LATEUPDATE — seguir al HoldPoint mientras es sostenida
     // =========================================================
 
     private void Update()
     {
-        // Seguir al jugador que sostiene la caja
-        if (holderClientId.Value != ulong.MaxValue)
+        // Si el jugador que la sostenía se desconectó, el servidor la suelta
+        // (antes quedaba flotando para siempre).
+        if (IsServer && holderClientId.Value != ulong.MaxValue && holderInteractor == null)
         {
-            PlayerInteractor holder = FindInteractorByClientId(holderClientId.Value);
-            if (holder != null && holder.HoldPoint != null)
-            {
-                transform.position = holder.HoldPoint.position;
-                transform.rotation = Quaternion.identity;
-            }
+            holderInteractor = FindInteractorByClientId(holderClientId.Value);
+            if (holderInteractor == null)
+                ReleaseOnServer();
         }
+    }
 
-        // Trackear tiempo de hold (solo en el owner de la caja no, sino en el owner del player)
-        // Lo maneja PlayerInteractor via ReleaseHeld, no aquí directamente.
+    private void LateUpdate()
+    {
+        // LateUpdate para pisar la interpolación del NetworkTransform:
+        // mientras está sostenida, la caja se ve pegada a la mano en todos
+        // los clientes, sin lag de red.
+        if (holderClientId.Value == ulong.MaxValue) return;
+
+        if (holderInteractor == null)
+            holderInteractor = FindInteractorByClientId(holderClientId.Value);
+
+        if (holderInteractor != null && holderInteractor.HoldPoint != null)
+        {
+            transform.position = holderInteractor.HoldPoint.position;
+            transform.rotation = Quaternion.identity;
+        }
     }
 
     // =========================================================
@@ -140,6 +175,9 @@ public class GrabbableObject : ActionInteractable
     [ServerRpc(RequireOwnership = false)]
     private void GrabServerRpc(ulong clientId)
     {
+        // Ya la tiene otro jugador (dos agarres casi simultáneos) → ignorar
+        if (holderClientId.Value != ulong.MaxValue) return;
+
         PlayerInteractor interactor = FindInteractorByClientId(clientId);
         if (interactor == null || interactor.HoldPoint == null) return;
 
@@ -160,6 +198,7 @@ public class GrabbableObject : ActionInteractable
         rb.isKinematic = false;
         rb.detectCollisions = true;
         rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
         rb.AddForce(throwDirection * throwForce, ForceMode.Impulse);
 
         NotifyReleaseClientRpc(new ClientRpcParams
@@ -184,6 +223,16 @@ public class GrabbableObject : ActionInteractable
         {
             Send = new ClientRpcSendParams { TargetClientIds = new[] { clientId } }
         });
+    }
+
+    /// <summary>Soltar forzado desde el servidor (ej: el holder se desconectó).</summary>
+    private void ReleaseOnServer()
+    {
+        holderClientId.Value = ulong.MaxValue;
+        rb.isKinematic = false;
+        rb.detectCollisions = true;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
     }
 
     [ClientRpc]
