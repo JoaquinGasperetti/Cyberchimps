@@ -2091,6 +2091,7 @@ GameObject:
   m_Component:
   - component: {fileID: 827511156}
   - component: {fileID: 827511157}
+  - component: {fileID: 1940000010}
   m_Layer: 0
   m_Name: LevelManager
   m_TagString: Untagged
@@ -5782,6 +5783,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 687975355983598619, guid: dfc094582b1eba74b8e0e044fea4c442, type: 3}
+      propertyPath: cyberdataText
+      value: 
+      objectReference: {fileID: 1940000002}
+    - target: {fileID: 687975355983598619, guid: dfc094582b1eba74b8e0e044fea4c442, type: 3}
+      propertyPath: globalText
+      value: 
+      objectReference: {fileID: 1940000003}
     - target: {fileID: 4170331719988100324, guid: dfc094582b1eba74b8e0e044fea4c442, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -6277,6 +6286,140 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 64e988281c34a0147a8bf9fb06b38e58, type: 3}
+--- !u!114 &1940000001 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5825895869639551804, guid: dfc094582b1eba74b8e0e044fea4c442, type: 3}
+  m_PrefabInstance: {fileID: 2003274107136532740}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &1940000002 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2468016980759018832, guid: dfc094582b1eba74b8e0e044fea4c442, type: 3}
+  m_PrefabInstance: {fileID: 2003274107136532740}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &1940000003 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6722237823490949186, guid: dfc094582b1eba74b8e0e044fea4c442, type: 3}
+  m_PrefabInstance: {fileID: 2003274107136532740}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &1940000010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827511155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39b2a6a74e50e7e43b0cfec36c7dd5a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelManager
+  countdownText: {fileID: 0}
+  countdownDuration: 3
+  timerText: {fileID: 1940000001}
+  bonusTimeText: {fileID: 0}
+  bonusTextDuration: 2
+  levelCompletePanel: {fileID: 0}
+  finalTimeText: {fileID: 0}
+  stars:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  filledStar: {fileID: 21300000, guid: 84487d73ca4b791498332d8f6858417f, type: 3}
+  emptyStar: {fileID: 21300000, guid: 5b56d9fa0e8bd6e409ed188db38a692c, type: 3}
+  levelSelectorScene: LevelSelect
+  lobbyScene: Lobby
+  nextLevelScene: Esqueleto de lvl 1
+--- !u!1 &1940000020
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1940000021}
+  - component: {fileID: 1940000022}
+  - component: {fileID: 1940000023}
+  m_Layer: 0
+  m_Name: LevelTimer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1940000021
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1940000020}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1940000022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1940000020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 1937001001
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &1940000023
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1940000020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8bb387c25cea1349af2b272f136d6c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelTimer
+  ShowTopMostFoldoutHeaderGroup: 1
+  levelDuration: 200
+  timerText: {fileID: 1940000001}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -6300,3 +6443,4 @@ SceneRoots:
   - {fileID: 3585850619700226963}
   - {fileID: 26203371}
   - {fileID: 3676527633093944117}
+  - {fileID: 1940000021}
