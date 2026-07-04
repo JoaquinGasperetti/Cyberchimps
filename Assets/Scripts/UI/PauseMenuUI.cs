@@ -71,22 +71,25 @@ public class PauseMenuUI : MonoBehaviour
 
         SimpleUI.CreateOverlay(menuRoot.transform);
 
-        var panel = SimpleUI.CreatePanel(menuRoot.transform, new Vector2(640f, 560f));
+        var panel = SimpleUI.CreatePanel(menuRoot.transform, new Vector2(640f, 680f));
         Transform p = panel.transform;
 
-        SimpleUI.CreateText(p, "Title", "OPCIONES", 60f,
-            new Vector2(0f, 200f), new Vector2(560f, 80f));
+        SimpleUI.CreateText(p, "Title", "PAUSA", 60f,
+            new Vector2(0f, 260f), new Vector2(560f, 80f));
 
         var size = new Vector2(460f, 90f);
 
         SimpleUI.CreateButton(p, "ButtonResume", "Continuar",
-            new Vector2(0f, 80f), size, SimpleUI.GreenButton, CloseMenu);
+            new Vector2(0f, 140f), size, SimpleUI.GreenButton, CloseMenu);
+
+        SimpleUI.CreateButton(p, "ButtonOptions", "Opciones",
+            new Vector2(0f, 20f), size, SimpleUI.GreyButton, OptionsMenuUI.Show);
 
         var lobbyButton = SimpleUI.CreateButton(p, "ButtonLobby", "Volver al Lobby (ambos)",
-            new Vector2(0f, -40f), size, SimpleUI.BlueButton, OnLobbyClicked);
+            new Vector2(0f, -100f), size, SimpleUI.BlueButton, OnLobbyClicked);
 
         SimpleUI.CreateButton(p, "ButtonQuit", "Salir al menú principal",
-            new Vector2(0f, -160f), size, SimpleUI.RedButton, OnQuitClicked);
+            new Vector2(0f, -220f), size, SimpleUI.RedButton, OnQuitClicked);
 
         // Solo el host puede llevar a los dos al Lobby (carga de escena en red)
         bool isHost = NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost;

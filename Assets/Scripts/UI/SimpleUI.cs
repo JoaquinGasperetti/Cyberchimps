@@ -96,6 +96,67 @@ public static class SimpleUI
         return button;
     }
 
+    /// <summary>
+    /// Slider horizontal simple (fondo oscuro + relleno de color + handle),
+    /// construido con rects de color plano como el resto de SimpleUI.
+    /// </summary>
+    public static Slider CreateSlider(
+        Transform parent, string name, Vector2 anchoredPos, Vector2 size,
+        float initialValue, UnityAction<float> onChanged)
+    {
+        var root = new GameObject(name);
+        root.transform.SetParent(parent, false);
+        var rootRt = root.AddComponent<RectTransform>();
+        Center(rootRt, anchoredPos, size);
+
+        // Fondo (barra)
+        var bg = CreateImage(root.transform, "Background", new Color(0f, 0f, 0f, 0.45f));
+        Stretch(bg.rectTransform);
+        bg.raycastTarget = false;
+
+        // Área de relleno
+        var fillArea = new GameObject("Fill Area");
+        fillArea.transform.SetParent(root.transform, false);
+        var fillAreaRt = fillArea.AddComponent<RectTransform>();
+        Stretch(fillAreaRt);
+        fillAreaRt.offsetMin = new Vector2(6f, 6f);
+        fillAreaRt.offsetMax = new Vector2(-6f, -6f);
+
+        var fill = CreateImage(fillArea.transform, "Fill", GreenButton);
+        var fillRt = fill.rectTransform;
+        fillRt.anchorMin = Vector2.zero;
+        fillRt.anchorMax = new Vector2(0f, 1f);
+        fillRt.offsetMin = Vector2.zero;
+        fillRt.offsetMax = Vector2.zero;
+        fill.raycastTarget = false;
+
+        // Handle
+        var handleArea = new GameObject("Handle Slide Area");
+        handleArea.transform.SetParent(root.transform, false);
+        var handleAreaRt = handleArea.AddComponent<RectTransform>();
+        Stretch(handleAreaRt);
+        handleAreaRt.offsetMin = new Vector2(14f, 0f);
+        handleAreaRt.offsetMax = new Vector2(-14f, 0f);
+
+        var handle = CreateImage(handleArea.transform, "Handle", Color.white);
+        var handleRt = handle.rectTransform;
+        handleRt.anchorMin = new Vector2(0f, 0f);
+        handleRt.anchorMax = new Vector2(0f, 1f);
+        handleRt.sizeDelta = new Vector2(28f, 12f);
+        handleRt.anchoredPosition = Vector2.zero;
+
+        var slider = root.AddComponent<Slider>();
+        slider.fillRect = fillRt;
+        slider.handleRect = handleRt;
+        slider.targetGraphic = handle;
+        slider.minValue = 0f;
+        slider.maxValue = 1f;
+        slider.value = initialValue;
+        if (onChanged != null) slider.onValueChanged.AddListener(onChanged);
+
+        return slider;
+    }
+
     // ── Internos ──────────────────────────────────────────────────────────
 
     private static Image CreateImage(Transform parent, string name, Color color)

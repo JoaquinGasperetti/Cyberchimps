@@ -11,6 +11,12 @@ public class MainMenuManager : MonoBehaviour
         SceneManager.LoadScene(lobbySceneName);
     }
 
+    // Botón "Opciones" del menú principal (ver OptionsMenuUI)
+    public void OpenOptions()
+    {
+        OptionsMenuUI.Show();
+    }
+
     public void QuitGame()
     {
         Debug.Log("Quit Game");
