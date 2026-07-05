@@ -4073,6 +4073,8 @@ GameObject:
   - component: {fileID: 1183481191}
   - component: {fileID: 1183481190}
   - component: {fileID: 1183481194}
+  - component: {fileID: 1940000030}
+  - component: {fileID: 1940000031}
   m_Layer: 6
   m_Name: Sea
   m_TagString: Untagged
@@ -6169,6 +6171,39 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4710311374243602104, guid: 8ede486ac00516c4ba325610e308202a, type: 3}
   m_PrefabInstance: {fileID: 7296150843578461202}
   m_PrefabAsset: {fileID: 0}
+--- !u!65 &1940000030
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1183481189}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 10, y: 0.7, z: 10}
+  m_Center: {x: 0, y: 0.2, z: 0}
+--- !u!114 &1940000031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1183481189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1e6cdb2adf741eeaa431f727b49d0ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KillZone
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
