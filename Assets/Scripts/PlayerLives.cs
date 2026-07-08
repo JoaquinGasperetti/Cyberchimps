@@ -163,8 +163,50 @@ public class PlayerLives : NetworkBehaviour
             : "Jugador 2";
 
         bool isHost = NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost;
+        // El jugador que perdió es el único que puede revivir viendo un anuncio.
+        bool isLoser = NetworkManager.Singleton != null
+            && loserClientId == NetworkManager.Singleton.LocalClientId;
 
-        GameOverUI.Show(loserName, isHost);
+        GameOverUI.Show(loserName, isHost, isLoser);
+    }
+
+    // =========================================================
+    // REVIVIR CON ANUNCIO (rewarded) — lo pide el jugador que perdió
+    // =========================================================
+
+    /// <summary>
+    /// Lo llama GameOverUI en el jugador que perdió, DESPUÉS de ver el anuncio
+    /// recompensado. Pide al servidor restaurar una vida y reanudar la partida.
+    /// </summary>
+    public void RequestReviveFromAd()
+    {
+        if (!IsOwner) return;
+        ReviveServerRpc();
+    }
+
+    [ServerRpc]
+    private void ReviveServerRpc()
+    {
+        if (!gameOverTriggered) return;
+
+        gameOverTriggered = false;
+        lives.Value = 1;
+        lastLifeLostTime = Time.time; // gracia para no volver a morir al instante
+
+        LevelTimer.Instance?.StartTimer();
+
+        // Devolver al jugador a su spawn y reanudar en ambos clientes
+        RespawnOwnerClientRpc(spawnPosition, new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams { TargetClientIds = new[] { OwnerClientId } }
+        });
+        HideGameOverClientRpc();
+    }
+
+    [ClientRpc]
+    private void HideGameOverClientRpc()
+    {
+        GameOverUI.Hide();
     }
 
     // =========================================================

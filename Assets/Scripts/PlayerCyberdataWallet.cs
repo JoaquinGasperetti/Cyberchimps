@@ -76,6 +76,31 @@ public class PlayerCyberdataWallet : NetworkBehaviour
         levelCyberdata.Value = 0;
     }
 
+    /// <summary>
+    /// Suma Cyberdatos al total guardado del DUEÑO local (recompensa por ver un
+    /// anuncio). Es 100% local (PlayerPrefs), no pasa por el servidor.
+    /// </summary>
+    public void GrantAdBonus(int amount)
+    {
+        if (!IsOwner || amount <= 0) return;
+        TotalWallet += amount;
+        PlayerPrefs.SetInt(TotalWalletKey, TotalWallet);
+        PlayerPrefs.Save();
+        OnTotalWalletChanged?.Invoke(TotalWallet);
+    }
+
+    /// <summary>El wallet del jugador local (o null si todavía no spawneó).</summary>
+    public static PlayerCyberdataWallet LocalWallet
+    {
+        get
+        {
+            var nm = NetworkManager.Singleton;
+            if (nm == null || nm.LocalClient == null || nm.LocalClient.PlayerObject == null)
+                return null;
+            return nm.LocalClient.PlayerObject.GetComponent<PlayerCyberdataWallet>();
+        }
+    }
+
     private void HandleLevelCyberdataChanged(int oldValue, int newValue)
     {
         // Este callback solo llega al dueño y al servidor (ReadPermission.Owner).
