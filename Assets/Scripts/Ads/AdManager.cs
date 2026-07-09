@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GoogleMobileAds.Api;
+using GoogleMobileAds.Ump.Api;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -80,6 +81,45 @@ public class AdManager : MonoBehaviour
 
     private void Start()
     {
+#if UNITY_EDITOR
+        // En el editor no hay UMP real (no hay formulario configurable) y
+        // CanRequestAds() daría false, bloqueando la inicialización.
+        // Inicializamos directo → el plugin muestra sus PLACEHOLDERS de anuncio
+        // en Play Mode (banner, interstitial, rewarded y app-open de mentira).
+        InitializeAds();
+#else
+        // ── Consentimiento UMP (GDPR/EEA) — requerido por la política de Google ──
+        // Flujo oficial v11: actualizar info de consentimiento → mostrar el
+        // formulario solo si hace falta → inicializar el SDK solo si se puede.
+        ConsentInformation.Update(new ConsentRequestParameters(), updateError =>
+        {
+            if (updateError != null)
+            {
+                // Sin conexión o sin formulario configurado en la consola de AdMob:
+                // seguimos igual — fuera del EEA no se requiere el formulario.
+                Debug.LogWarning($"[AdManager] UMP update: {updateError.Message}");
+                InitializeAds();
+                return;
+            }
+
+            ConsentForm.LoadAndShowConsentFormIfRequired(formError =>
+            {
+                if (formError != null)
+                    Debug.LogWarning($"[AdManager] UMP form: {formError.Message}");
+
+                if (ConsentInformation.CanRequestAds())
+                    InitializeAds();
+                else
+                    Debug.Log("[AdManager] Sin consentimiento para anuncios — no se inicializa el SDK.");
+            });
+        });
+#endif
+    }
+
+    private void InitializeAds()
+    {
+        if (_initialized) return;
+
         MobileAds.Initialize(_ =>
         {
             _initialized = true;
@@ -152,6 +192,7 @@ public class AdManager : MonoBehaviour
     {
         if (_showingFullScreen || !AppOpenReady || !CurrentIsMenu()) return;
         _appOpen.Show();
+        FixEditorPlaceholders();
     }
 
     // =========================================================
@@ -171,6 +212,7 @@ public class AdManager : MonoBehaviour
 
         _banner = new BannerView(BannerId, AdSize.Banner, AdPosition.Bottom);
         _banner.LoadAd(new AdRequest());
+        FixEditorPlaceholders();
     }
 
     private void DestroyBanner()
@@ -232,6 +274,7 @@ public class AdManager : MonoBehaviour
             cb?.Invoke();
         };
         _interstitial.Show();
+        FixEditorPlaceholders();
     }
 
     // =========================================================
@@ -261,6 +304,7 @@ public class AdManager : MonoBehaviour
     {
         if (_showingFullScreen || !RewardedReady) return;
         _rewarded.Show(_ => onReward?.Invoke());
+        FixEditorPlaceholders();
     }
 
     // =========================================================
@@ -292,6 +336,64 @@ public class AdManager : MonoBehaviour
     {
         if (_showingFullScreen || !RewardedInterstitialReady) return;
         _rewardedInterstitial.Show(_ => onReward?.Invoke());
+        FixEditorPlaceholders();
+    }
+
+    // =========================================================
+    // PLACEHOLDERS DEL EDITOR — normalización
+    // =========================================================
+    // Los prefabs de placeholder del plugin (PlaceholderAds/*) vienen con
+    // sortingOrder 0 y un escalado pensado para teléfonos verticales:
+    //  - quedan DEBAJO de nuestra UI runtime (sorting 300-500), que además
+    //    bloquea el touch → no se puede tocar el botón de cerrar;
+    //  - en Game view horizontal el layout puede desbordar la pantalla.
+    // En cada Show() los subimos arriba de todo y les ponemos escalado
+    // "Expand" (el área de referencia entra SIEMPRE completa en pantalla,
+    // así el botón de cerrar nunca queda afuera).
+    // Solo compila/corre en el editor — en el build no existe nada de esto.
+
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    private void FixEditorPlaceholders()
+    {
+        StartCoroutine(FixEditorPlaceholdersRoutine());
+    }
+
+    private System.Collections.IEnumerator FixEditorPlaceholdersRoutine()
+    {
+        // El prefab se instancia durante Show(); insistimos unos frames
+        // por si la instanciación llega un toque después.
+        for (int i = 0; i < 5; i++)
+        {
+            foreach (var canvas in FindObjectsByType<Canvas>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                string n = canvas.gameObject.name;
+                bool fullScreenAd = n.StartsWith("768x1024") || n.StartsWith("1024x768");
+                bool bannerAd = n.StartsWith("BANNER") || n.StartsWith("ADAPTIVE")
+                    || n.StartsWith("SMART_BANNER") || n.StartsWith("FULL_BANNER")
+                    || n.StartsWith("LARGE_BANNER") || n.StartsWith("LEADERBOARD")
+                    || n.StartsWith("MEDIUM_RECTANGLE") || n.StartsWith("CENTER");
+
+                if (!fullScreenAd && !bannerAd) continue;
+
+                // Encima de toda nuestra UI (max de Unity: 32767)
+                canvas.sortingOrder = 32000;
+
+                // Solo los full-screen necesitan arreglo de escalado
+                if (fullScreenAd)
+                {
+                    var scaler = canvas.GetComponent<UnityEngine.UI.CanvasScaler>();
+                    if (scaler != null)
+                    {
+                        scaler.uiScaleMode =
+                            UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                        scaler.screenMatchMode =
+                            UnityEngine.UI.CanvasScaler.ScreenMatchMode.Expand;
+                    }
+                }
+            }
+            yield return null;
+        }
     }
 
     // =========================================================
