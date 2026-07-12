@@ -279,9 +279,29 @@ public class LevelManager : MonoBehaviour
         }
     }
 
-    public void GoToLobby() => LoadSceneForEveryone(lobbyScene);
+    public void GoToLobby() => LoadSceneWithInterstitial(lobbyScene);
 
-    public void GoToNextLevel() => LoadSceneForEveryone(nextLevelScene);
+    public void GoToNextLevel() => LoadSceneWithInterstitial(nextLevelScene);
+
+    /// <summary>
+    /// Transición con interstitial (AdMob): el anuncio lo ve solo quien dispara
+    /// la carga (el host). AdManager.Interstitial es null-safe y sigue de largo
+    /// si no hay anuncio listo o no pasó el intervalo mínimo — la transición
+    /// nunca se traba por el anuncio.
+    /// </summary>
+    private void LoadSceneWithInterstitial(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName)) return;
+
+        if (!IsSceneAuthority())
+        {
+            // El cliente no carga escenas; que LoadSceneForEveryone loguee el warning
+            LoadSceneForEveryone(sceneName);
+            return;
+        }
+
+        AdManager.Interstitial(() => LoadSceneForEveryone(sceneName));
+    }
 
     private string FormatTime(float time)
     {
@@ -387,12 +407,12 @@ public class LevelManager : MonoBehaviour
     public void RetryLevel()
     {
         // En red debe recargarse vía NetworkSceneManager para ambos jugadores
-        LoadSceneForEveryone(SceneManager.GetActiveScene().name);
+        LoadSceneWithInterstitial(SceneManager.GetActiveScene().name);
     }
 
     public void ReturnToLevelSelector()
     {
-        LoadSceneForEveryone(levelSelectorScene);
+        LoadSceneWithInterstitial(levelSelectorScene);
     }
 
     private bool HasCyberdataStar()

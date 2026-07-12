@@ -1,14 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-This Google Mobile Ads plugin library manifest will get merged with your
-application's manifest, adding the necessary metadata
-required for displaying ads.
--->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.unity.ads.plugin">
-  <uses-sdk android:minSdkVersion="23"/>
-  <uses-permission android:name="android.permission.INTERNET"/>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.google.unity.ads.plugin">
+  <uses-sdk android:minSdkVersion="23" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <!-- Requerido por Google Play para apps que usan el Advertising ID
+       (AdMob) en Android 13+ — sin esto Play Console rechaza la declaración -->
+  <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
   <application>
-    <uses-library android:required="false" android:name="org.apache.http.legacy"/>
+    <uses-library android:required="false" android:name="org.apache.http.legacy" />
+    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-2266949018056491~9616893306" />
+    <meta-data android:name="com.google.unity.ads.UNITY_VERSION" android:value="6000.3.10f1" />
   </application>
 </manifest>

@@ -127,6 +127,7 @@ public class PauseMenuUI : MonoBehaviour
         if (NetworkSessionManager.Instance != null)
             await NetworkSessionManager.Instance.LeaveSessionAsync();
 
-        SceneManager.LoadScene(mainMenuScene);
+        // Transición natural → interstitial (null-safe, sigue de largo si no hay)
+        AdManager.Interstitial(() => SceneManager.LoadScene(mainMenuScene));
     }
 }

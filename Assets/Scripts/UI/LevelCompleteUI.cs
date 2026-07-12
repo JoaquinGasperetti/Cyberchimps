@@ -1,5 +1,7 @@
 using System;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Panel de "Nivel completado" generado en runtime.
@@ -9,6 +11,9 @@ using UnityEngine;
 /// Muestra tiempo restante, estrellas y las stats de cada jugador (la foto
 /// que el servidor mandó por ClientRpc desde GoalZone).
 ///
+/// - CADA jugador ve "x2 Cyberdatos (Anuncio)": rewarded interstitial opt-in
+///   que duplica lo que ese jugador juntó en el nivel (se acredita al wallet
+///   local vía PlayerCyberdataWallet.GrantAdBonus).
 /// - HOST: botones "Volver al Lobby" y "Siguiente nivel" (si hay uno configurado).
 /// - CLIENTE: mensaje "Esperando al host..." — solo el host puede cargar escenas
 ///   en red (mismo criterio que NetworkLevelSelectorManager).
@@ -72,6 +77,9 @@ public class LevelCompleteUI : MonoBehaviour
             }
         }
 
+        // ── x2 Cyberdatos con anuncio (opt-in, cada jugador el suyo) ──────
+        BuildAdBonusButton(p);
+
         // ── Botones / mensaje de espera ───────────────────────────────────
         if (isHost)
         {
@@ -94,5 +102,42 @@ public class LevelCompleteUI : MonoBehaviour
                 new Vector2(0f, -190f), new Vector2(720f, 60f))
                 .color = new Color(1f, 1f, 1f, 0.7f);
         }
+    }
+
+    // ── Recompensa x2 con rewarded interstitial ───────────────────────────
+
+    private void BuildAdBonusButton(Transform parent)
+    {
+        var wallet = PlayerCyberdataWallet.LocalWallet;
+        int collected = wallet != null ? wallet.LevelCyberdata : 0;
+        if (collected <= 0) return; // sin cyberdatos no hay nada que duplicar
+
+        var bonusBtn = SimpleUI.CreateButton(parent, "ButtonAdBonus",
+            $"x2 Cyberdatos (+{collected}) — Anuncio",
+            new Vector2(0f, -45f), new Vector2(520f, 70f),
+            new Color(0.85f, 0.62f, 0.12f, 1f), null);
+
+        bonusBtn.onClick.AddListener(() => OnAdBonusClicked(bonusBtn, collected));
+
+        // Si el anuncio todavía no cargó, se ve deshabilitado (igual que GameOverUI)
+        bonusBtn.interactable = AdManager.CanShowRewardedInterstitial;
+    }
+
+    private void OnAdBonusClicked(Button bonusBtn, int amount)
+    {
+        bonusBtn.interactable = false; // evitar doble uso
+
+        AdManager.RewardedInterstitial(() =>
+        {
+            // Se acredita SOLO si el usuario completó el anuncio
+            PlayerCyberdataWallet.LocalWallet?.GrantAdBonus(amount);
+
+            var label = bonusBtn.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null) label.text = "¡Cyberdatos duplicados!";
+        });
+
+        // Si justo no había anuncio listo, RewardedInterstitial() no hace nada:
+        // rehabilitar para que pueda reintentar.
+        if (!AdManager.CanShowRewardedInterstitial) bonusBtn.interactable = true;
     }
 }
