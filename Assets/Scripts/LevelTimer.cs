@@ -2,18 +2,6 @@ using UnityEngine;
 using TMPro;
 using Unity.Netcode;
 
-/// <summary>
-/// Timer de nivel: cuenta regresiva sincronizada para ambos jugadores.
-/// Es la ÚNICA fuente de verdad del tiempo restante — el servidor decrementa
-/// remainingTime y el NetworkVariable se replica automáticamente a todos los clientes.
-///
-/// SETUP en Unity:
-/// 1. Agregar este script a un GameObject en la escena del nivel (ej: "LevelTimer").
-/// 2. Agregarle un componente NetworkObject a ese mismo GameObject
-///    (In-Scene Placed NetworkObject → se auto-spawnea al cargar la escena en red).
-/// 3. Asignar "Level Duration" (segundos totales del nivel) y opcionalmente el TMP_Text.
-/// 4. LevelManager ya se engancha solo a este componente (ver LevelManager.cs).
-/// </summary>
 public class LevelTimer : NetworkBehaviour
 {
     public static LevelTimer Instance { get; private set; }
@@ -39,21 +27,18 @@ public class LevelTimer : NetworkBehaviour
     public float RemainingTime => remainingTime.Value;
     public bool IsRunning => isRunning.Value;
 
-    /// <summary>Se dispara en TODOS los clientes cada vez que cambia el tiempo restante.</summary>
     public event System.Action<float> OnTimeChanged;
 
-    /// <summary>Se dispara en TODOS los clientes cuando el tiempo llega a 0.</summary>
     public event System.Action OnTimeUp;
 
-    /// <summary>Se dispara en TODOS los clientes cuando se suma tiempo bonus (para mostrar el popup "+5s").</summary>
     public event System.Action<float> OnBonusTimeAdded;
 
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            // Destruir SOLO el componente duplicado, nunca el GameObject entero:
-            // el duplicado podría estar en el Canvas o en un NetworkObject spawneado.
+            // destruir solo el componente: el GameObject puede ser el Canvas
+            // o un NetworkObject spawneado
             Debug.LogWarning($"[LevelTimer] Duplicado en '{name}' — ya existe uno en '{Instance.name}'. Se elimina el componente duplicado.");
             Destroy(this);
             return;
@@ -90,11 +75,6 @@ public class LevelTimer : NetworkBehaviour
         OnTimeChanged?.Invoke(newValue);
     }
 
-    /// <summary>
-    /// Arranca la cuenta regresiva. Llamado por LevelManager cuando termina el
-    /// countdown inicial (3-2-1). Solo tiene efecto si lo llama el servidor;
-    /// en los clientes es un no-op seguro (por eso se puede llamar sin chequear IsServer afuera).
-    /// </summary>
     public void StartTimer()
     {
         if (!IsServer) return;
@@ -126,11 +106,6 @@ public class LevelTimer : NetworkBehaviour
         OnTimeUp?.Invoke();
     }
 
-    /// <summary>
-    /// Suma tiempo extra al timer compartido (bonus del BonusItem).
-    /// IMPORTANTE: llamar SOLO desde código que ya corre en el servidor
-    /// (ej: TimePickup.OnTriggerEnter, que está guardado con "if (!IsServer) return;").
-    /// </summary>
     public void AddBonusTime(float amount)
     {
         if (!IsServer) return;

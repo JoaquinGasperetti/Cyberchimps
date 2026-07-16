@@ -2,18 +2,6 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Pantalla de Game Over generada en runtime (mismo estilo que LevelCompleteUI).
-/// La muestra PlayerLives (vía ClientRpc) en AMBOS jugadores cuando alguno
-/// se queda sin vidas.
-///
-/// - Indica qué jugador perdió.
-/// - El jugador que PERDIÓ ve "REVIVIR" (mira un anuncio recompensado y vuelve
-///   con 1 vida; se reanuda la partida para ambos).
-/// - HOST: botones "Reintentar" (recarga el nivel por red) y "Volver al Lobby".
-///   Ambos muestran un interstitial antes de la transición.
-/// - CLIENTE no-perdedor: mensaje "Esperando al host...".
-/// </summary>
 public class GameOverUI : MonoBehaviour
 {
     private static GameOverUI instance;
@@ -29,7 +17,6 @@ public class GameOverUI : MonoBehaviour
         instance.Build(loserName, isHost, isLoser);
     }
 
-    /// <summary>Cierra la pantalla (la llama PlayerLives al revivir con anuncio).</summary>
     public static void Hide()
     {
         if (instance != null) Destroy(instance.gameObject);
@@ -56,17 +43,15 @@ public class GameOverUI : MonoBehaviour
 
         var size = new Vector2(460f, 95f);
 
-        // ── Revivir con anuncio (solo el que perdió) ──────────────────────
         if (isLoser)
         {
             var reviveBtn = SimpleUI.CreateButton(p, "ButtonRevive", "REVIVIR (Anuncio)",
                 new Vector2(0f, 40f), size, SimpleUI.GreenButton, null);
             reviveBtn.onClick.AddListener(() => OnReviveClicked(reviveBtn));
-            // Si no hay anuncio recompensado listo, se ve deshabilitado.
+            // si no hay anuncio cargado, se ve deshabilitado
             reviveBtn.interactable = AdManager.CanShowRewarded;
         }
 
-        // ── Transiciones (solo host) ──────────────────────────────────────
         if (isHost)
         {
             SimpleUI.CreateButton(p, "ButtonRetry", "Reintentar",
@@ -83,8 +68,6 @@ public class GameOverUI : MonoBehaviour
         }
     }
 
-    // ── Acciones ──────────────────────────────────────────────────────────
-
     private void OnReviveClicked(UnityEngine.UI.Button reviveBtn)
     {
         reviveBtn.interactable = false; // evitar doble uso mientras carga el anuncio
@@ -92,10 +75,10 @@ public class GameOverUI : MonoBehaviour
         {
             var lives = PlayerLivesLocal();
             if (lives != null) lives.RequestReviveFromAd();
-            // Si algo falla, PlayerLives no oculta la pantalla → rehabilitar botón.
+            // si algo falla la pantalla no se cierra y el boton queda para reintentar
         });
 
-        // Si el anuncio no estaba listo, Rewarded() no hace nada: rehabilitar.
+        // si no habia anuncio, no paso nada: lo rehabilitamos
         if (!AdManager.CanShowRewarded) reviveBtn.interactable = true;
     }
 

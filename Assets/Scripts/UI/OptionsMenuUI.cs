@@ -1,18 +1,6 @@
 using TMPro;
 using UnityEngine;
 
-/// <summary>
-/// Panel de opciones generado en runtime (mismo estilo que PauseMenuUI /
-/// LevelCompleteUI). Se abre desde el botón "Opciones" del menú principal
-/// (MainMenuManager.OpenOptions) y desde el menú de pausa in-game.
-///
-/// Opciones (ver SettingsManager):
-///  - Volumen general  → slider
-///  - Calidad gráfica  → botón que cicla entre los niveles de QualitySettings
-///  - Vibración        → botón Sí/No
-///
-/// Los valores se guardan en PlayerPrefs al cerrar el panel.
-/// </summary>
 public class OptionsMenuUI : MonoBehaviour
 {
     private static OptionsMenuUI instance;
@@ -21,7 +9,6 @@ public class OptionsMenuUI : MonoBehaviour
     private TextMeshProUGUI vibrationLabel;
     private TextMeshProUGUI volumeValueLabel;
 
-    /// <summary>Abre el panel (una sola instancia; sortOrder por encima del menú de pausa).</summary>
     public static void Show()
     {
         if (instance != null) return;
@@ -46,7 +33,6 @@ public class OptionsMenuUI : MonoBehaviour
         SimpleUI.CreateText(p, "Title", "OPCIONES", 62f,
             new Vector2(0f, 255f), new Vector2(680f, 80f));
 
-        // ── Volumen ───────────────────────────────────────────────────────
         SimpleUI.CreateText(p, "VolumeLabel", "Volumen", 40f,
             new Vector2(-160f, 150f), new Vector2(320f, 55f),
             TextAlignmentOptions.Left);
@@ -59,7 +45,6 @@ public class OptionsMenuUI : MonoBehaviour
             new Vector2(0f, 85f), new Vector2(620f, 40f),
             SettingsManager.Volume, OnVolumeChanged);
 
-        // ── Calidad gráfica ──────────────────────────────────────────────
         SimpleUI.CreateText(p, "QualityTitle", "Calidad gráfica", 40f,
             new Vector2(-160f, 0f), new Vector2(320f, 55f),
             TextAlignmentOptions.Left);
@@ -71,7 +56,6 @@ public class OptionsMenuUI : MonoBehaviour
         qualityLabel.fontSize = 30f;
         UpdateQualityLabel();
 
-        // ── Vibración ────────────────────────────────────────────────────
         SimpleUI.CreateText(p, "VibrationTitle", "Vibración", 40f,
             new Vector2(-160f, -95f), new Vector2(320f, 55f),
             TextAlignmentOptions.Left);
@@ -83,13 +67,10 @@ public class OptionsMenuUI : MonoBehaviour
         vibrationLabel.fontSize = 30f;
         UpdateVibrationLabel();
 
-        // ── Cerrar ───────────────────────────────────────────────────────
         SimpleUI.CreateButton(p, "ButtonClose", "Cerrar",
             new Vector2(0f, -235f), new Vector2(460f, 90f),
             SimpleUI.GreenButton, Close);
     }
-
-    // ── Acciones ──────────────────────────────────────────────────────────
 
     private void OnVolumeChanged(float value)
     {
@@ -116,8 +97,6 @@ public class OptionsMenuUI : MonoBehaviour
         SettingsManager.Save();
         Destroy(gameObject);
     }
-
-    // ── UI helpers ────────────────────────────────────────────────────────
 
     private void UpdateQualityLabel()
     {

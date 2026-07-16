@@ -3,18 +3,6 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// HUD de Cyberdatos del jugador LOCAL (cada dispositivo muestra solo lo suyo).
-/// Se busca el PlayerCyberdataWallet del jugador propio (dueño local) y nos
-/// suscribimos a sus eventos para reflejar en tiempo real:
-///  - cuántos Cyberdatos juntó ESTE jugador en el nivel actual
-///  - el total acumulado guardado en el dispositivo (moneda del juego)
-///
-/// SETUP en Unity:
-/// 1. Asignar "Cyberdata Text" (progreso del nivel) y "Global Text" (moneda total)
-///    en el Canvas de cada jugador/HUD.
-/// 2. No hace falta más setup — se auto-engancha al Player local cuando spawnea.
-/// </summary>
 public class CyberdataUI : MonoBehaviour
 {
     [SerializeField] public TMP_Text cyberdataText; // ej: "3 cyberdatos" (este nivel)
@@ -38,8 +26,7 @@ public class CyberdataUI : MonoBehaviour
 
     private IEnumerator BindToLocalWallet()
     {
-        // Esperamos a que el jugador local esté spawneado — puede tardar
-        // un par de frames tras cargar el nivel (ver PlayerSpawnManager).
+        // el player local puede tardar unos frames en spawnear al cargar el nivel
         while (NetworkManager.Singleton == null ||
                NetworkManager.Singleton.LocalClient == null ||
                NetworkManager.Singleton.LocalClient.PlayerObject == null)

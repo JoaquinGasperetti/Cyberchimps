@@ -3,32 +3,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Panel de "Nivel completado" generado en runtime.
-/// Lo muestra LevelManager cuando no hay un levelCompletePanel asignado en el
-/// Inspector (así el flujo funciona en todas las escenas sin armar UI a mano).
-///
-/// Muestra tiempo restante, estrellas y las stats de cada jugador (la foto
-/// que el servidor mandó por ClientRpc desde GoalZone).
-///
-/// - CADA jugador ve "x2 Cyberdatos (Anuncio)": rewarded interstitial opt-in
-///   que duplica lo que ese jugador juntó en el nivel (se acredita al wallet
-///   local vía PlayerCyberdataWallet.GrantAdBonus).
-/// - HOST: botones "Volver al Lobby" y "Siguiente nivel" (si hay uno configurado).
-/// - CLIENTE: mensaje "Esperando al host..." — solo el host puede cargar escenas
-///   en red (mismo criterio que NetworkLevelSelectorManager).
-/// </summary>
 public class LevelCompleteUI : MonoBehaviour
 {
     private static LevelCompleteUI instance;
 
-    /// <param name="formattedTime">Tiempo restante ya formateado (mm:ss).</param>
-    /// <param name="earnedStars">Estrellas obtenidas (0-3).</param>
-    /// <param name="playerStatLines">Una línea por jugador ("Jugador 1: 5 Cyberdatos"). Puede ser null.</param>
-    /// <param name="isHost">Si este jugador decide a dónde ir.</param>
-    /// <param name="hasNextLevel">Si hay un "siguiente nivel" configurado.</param>
-    /// <param name="onLobby">Callback del botón Lobby (solo host).</param>
-    /// <param name="onNextLevel">Callback del botón Siguiente nivel (solo host).</param>
     public static void Show(
         string formattedTime, int earnedStars, string[] playerStatLines,
         bool isHost, bool hasNextLevel, Action onLobby, Action onNextLevel)
@@ -64,7 +42,6 @@ public class LevelCompleteUI : MonoBehaviour
         SimpleUI.CreateText(p, "Stars", $"Estrellas: {earnedStars} / 3", 38f,
             new Vector2(0f, 130f), new Vector2(720f, 55f));
 
-        // ── Stats por jugador ─────────────────────────────────────────────
         float y = 60f;
         if (playerStatLines != null)
         {
@@ -77,10 +54,8 @@ public class LevelCompleteUI : MonoBehaviour
             }
         }
 
-        // ── x2 Cyberdatos con anuncio (opt-in, cada jugador el suyo) ──────
         BuildAdBonusButton(p);
 
-        // ── Botones / mensaje de espera ───────────────────────────────────
         if (isHost)
         {
             var size = new Vector2(440f, 90f);
@@ -104,8 +79,6 @@ public class LevelCompleteUI : MonoBehaviour
         }
     }
 
-    // ── Recompensa x2 con rewarded interstitial ───────────────────────────
-
     private void BuildAdBonusButton(Transform parent)
     {
         var wallet = PlayerCyberdataWallet.LocalWallet;
@@ -119,7 +92,7 @@ public class LevelCompleteUI : MonoBehaviour
 
         bonusBtn.onClick.AddListener(() => OnAdBonusClicked(bonusBtn, collected));
 
-        // Si el anuncio todavía no cargó, se ve deshabilitado (igual que GameOverUI)
+        // si el anuncio todavia no cargo, se ve deshabilitado
         bonusBtn.interactable = AdManager.CanShowRewardedInterstitial;
     }
 
@@ -129,15 +102,14 @@ public class LevelCompleteUI : MonoBehaviour
 
         AdManager.RewardedInterstitial(() =>
         {
-            // Se acredita SOLO si el usuario completó el anuncio
+            // se acredita unicamente si termino de ver el anuncio
             PlayerCyberdataWallet.LocalWallet?.GrantAdBonus(amount);
 
             var label = bonusBtn.GetComponentInChildren<TextMeshProUGUI>();
             if (label != null) label.text = "¡Cyberdatos duplicados!";
         });
 
-        // Si justo no había anuncio listo, RewardedInterstitial() no hace nada:
-        // rehabilitar para que pueda reintentar.
+        // si justo no habia anuncio, no paso nada: lo rehabilitamos
         if (!AdManager.CanShowRewardedInterstitial) bonusBtn.interactable = true;
     }
 }

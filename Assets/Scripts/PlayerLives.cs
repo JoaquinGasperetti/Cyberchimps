@@ -3,23 +3,6 @@ using Unity.Netcode.Components;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Sistema de vidas del jugador (3 por defecto), sincronizado en red.
-///
-/// - Las vidas viven en una NetworkVariable (autoridad del servidor).
-/// - Se pierde una vida al caer al agua (KillZone) o al vacío (umbral de Y,
-///   chequeado por el servidor — la posición del jugador le llega por su
-///   ClientNetworkTransform).
-/// - Al perder una vida el jugador vuelve a su punto de spawn: el TELEPORT lo
-///   hace el DUEÑO (ClientRpc dirigido) porque el Player es owner-authoritative.
-/// - Al quedarse sin vidas: se frena el timer y AMBOS jugadores ven la
-///   pantalla de Game Over (GameOverUI) con Reintentar / Volver al Lobby.
-/// - La UI de corazones es runtime (solo el jugador local ve la suya) usando
-///   los sprites del pack asignados en el prefab del Player.
-///
-/// SETUP: componente en el prefab Player con los sprites de corazón asignados.
-/// No requiere nada en las escenas (el spawn se captura solo).
-/// </summary>
 public class PlayerLives : NetworkBehaviour
 {
     [Header("Vidas")]
@@ -41,19 +24,13 @@ public class PlayerLives : NetworkBehaviour
 
     public int CurrentLives => lives.Value;
 
-    // ── Server ────────────────────────────────────────────────────────────
     private Vector3 spawnPosition;
     private float lastLifeLostTime = -10f;
     private const float InvulnerabilityAfterRespawn = 1.5f;
     private bool gameOverTriggered;
 
-    // ── UI local (solo owner) ─────────────────────────────────────────────
     private Canvas livesCanvas;
     private Image[] heartImages;
-
-    // =========================================================
-    // INIT
-    // =========================================================
 
     public override void OnNetworkSpawn()
     {
@@ -61,8 +38,7 @@ public class PlayerLives : NetworkBehaviour
 
         if (IsServer)
         {
-            // El PlayerSpawnManager instancia al jugador en su spawn point —
-            // esa posición es a la que vuelve al perder una vida.
+            // el spawn point donde lo puso PlayerSpawnManager: ahi vuelve al morir
             spawnPosition = transform.position;
             lives.Value = maxLives;
         }
@@ -82,10 +58,6 @@ public class PlayerLives : NetworkBehaviour
             Destroy(livesCanvas.gameObject);
     }
 
-    // =========================================================
-    // DETECCIÓN DE CAÍDA AL VACÍO (server)
-    // =========================================================
-
     private void Update()
     {
         if (!IsServer || gameOverTriggered) return;
@@ -94,19 +66,12 @@ public class PlayerLives : NetworkBehaviour
             LoseLifeFromServer();
     }
 
-    // =========================================================
-    // PÉRDIDA DE VIDA — solo en el servidor
-    // (llamado por el chequeo de vacío o por KillZone)
-    // =========================================================
-
     public void LoseLifeFromServer()
     {
         if (!IsServer || gameOverTriggered) return;
         if (lives.Value <= 0) return;
 
-        // Ventana de invulnerabilidad: evita perder 2 vidas por el mismo
-        // golpe (ej: trigger del agua + umbral de vacío casi simultáneos,
-        // o re-trigger mientras la posición sincronizada vuelve al spawn).
+        // ventana de gracia para no perder dos vidas por el mismo golpe
         if (Time.time - lastLifeLostTime < InvulnerabilityAfterRespawn) return;
         lastLifeLostTime = Time.time;
 
@@ -114,7 +79,6 @@ public class PlayerLives : NetworkBehaviour
 
         if (lives.Value > 0)
         {
-            // El dueño se teletransporta a su spawn (autoridad del owner)
             RespawnOwnerClientRpc(spawnPosition, new ClientRpcParams
             {
                 Send = new ClientRpcSendParams { TargetClientIds = new[] { OwnerClientId } }
@@ -128,10 +92,6 @@ public class PlayerLives : NetworkBehaviour
         }
     }
 
-    // =========================================================
-    // RESPAWN — corre SOLO en el cliente dueño
-    // =========================================================
-
     [ClientRpc]
     private void RespawnOwnerClientRpc(Vector3 position, ClientRpcParams rpcParams = default)
     {
@@ -142,18 +102,13 @@ public class PlayerLives : NetworkBehaviour
             rb.angularVelocity = Vector3.zero;
         }
 
-        // Teleport explícito para que el otro jugador no vea al player
-        // "volando" interpolado por todo el mapa hasta el spawn.
+        // teleport para que el otro no lo vea volar por el mapa hasta el spawn
         var netTransform = GetComponent<NetworkTransform>();
         if (netTransform != null)
             netTransform.Teleport(position, transform.rotation, transform.localScale);
         else
             transform.position = position;
     }
-
-    // =========================================================
-    // GAME OVER — corre en TODOS los clientes
-    // =========================================================
 
     [ClientRpc]
     private void GameOverClientRpc(ulong loserClientId)
@@ -163,21 +118,13 @@ public class PlayerLives : NetworkBehaviour
             : "Jugador 2";
 
         bool isHost = NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost;
-        // El jugador que perdió es el único que puede revivir viendo un anuncio.
+        // solo el que perdio puede revivir mirando un anuncio
         bool isLoser = NetworkManager.Singleton != null
             && loserClientId == NetworkManager.Singleton.LocalClientId;
 
         GameOverUI.Show(loserName, isHost, isLoser);
     }
 
-    // =========================================================
-    // REVIVIR CON ANUNCIO (rewarded) — lo pide el jugador que perdió
-    // =========================================================
-
-    /// <summary>
-    /// Lo llama GameOverUI en el jugador que perdió, DESPUÉS de ver el anuncio
-    /// recompensado. Pide al servidor restaurar una vida y reanudar la partida.
-    /// </summary>
     public void RequestReviveFromAd()
     {
         if (!IsOwner) return;
@@ -195,7 +142,6 @@ public class PlayerLives : NetworkBehaviour
 
         LevelTimer.Instance?.StartTimer();
 
-        // Devolver al jugador a su spawn y reanudar en ambos clientes
         RespawnOwnerClientRpc(spawnPosition, new ClientRpcParams
         {
             Send = new ClientRpcSendParams { TargetClientIds = new[] { OwnerClientId } }
@@ -208,10 +154,6 @@ public class PlayerLives : NetworkBehaviour
     {
         GameOverUI.Hide();
     }
-
-    // =========================================================
-    // UI DE CORAZONES (solo el jugador local)
-    // =========================================================
 
     private void OnLivesChanged(int previous, int current)
     {
@@ -235,7 +177,7 @@ public class PlayerLives : NetworkBehaviour
             img.raycastTarget = false;
 
             var rt = img.rectTransform;
-            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f); // arriba-izquierda
+            rt.anchorMin = rt.anchorMax = new Vector2(0f, 1f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.sizeDelta = new Vector2(64f, 64f);
             rt.anchoredPosition = new Vector2(70f + i * 72f, -140f);

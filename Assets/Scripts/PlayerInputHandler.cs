@@ -11,20 +11,12 @@ public class PlayerInputHandler : NetworkBehaviour
     public bool JumpPressed { get; private set; }
     public bool ActionPressedThisFrame { get; private set; }
 
-    /// <summary>
-    /// True el frame en que se SUELTA el botón de acción.
-    /// Usado por PlayerInteractor para distinguir tap vs hold.
-    /// </summary>
     public bool ActionReleased { get; private set; }
 
     private Vector2 keyboardInput;
-    private bool actionHeld;          // estado interno del botón de acción
+    private bool actionHeld;
 
     public static PlayerInputHandler LocalInstance { get; private set; }
-
-    // =========================================================
-    // NETWORK SPAWN
-    // =========================================================
 
     public override void OnNetworkSpawn()
     {
@@ -51,10 +43,6 @@ public class PlayerInputHandler : NetworkBehaviour
         if (IsOwner && LocalInstance == this)
             LocalInstance = null;
     }
-
-    // =========================================================
-    // INPUT SYSTEM CALLBACKS
-    // =========================================================
 
     public void OnMove(InputAction.CallbackContext context)
     {
@@ -86,10 +74,6 @@ public class PlayerInputHandler : NetworkBehaviour
         }
     }
 
-    // =========================================================
-    // UPDATE
-    // =========================================================
-
     private void Update()
     {
         if (movementJoystick != null && movementJoystick.Direction.sqrMagnitude > 0.01f)
@@ -100,18 +84,14 @@ public class PlayerInputHandler : NetworkBehaviour
 
     private void LateUpdate()
     {
-        // Limpiar flags de un solo frame
+        // flags que duran un solo frame
         ActionPressedThisFrame = false;
         ActionReleased = false;
     }
 
-    // =========================================================
-    // API
-    // =========================================================
-
     public void ConsumeJump() => JumpPressed = false;
 
-    // Canvas móvil
+    // botones del canvas movil
     public void MobileJumpDown() => JumpPressed = true;
     public void MobileJumpUp() => JumpPressed = false;
     public void TriggerAction() => ActionPressedThisFrame = true;

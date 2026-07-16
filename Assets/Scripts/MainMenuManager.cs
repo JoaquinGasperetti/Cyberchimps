@@ -5,13 +5,12 @@ public class MainMenuManager : MonoBehaviour
 {
     [SerializeField] private string lobbySceneName = "Lobby";
 
-    // El botón "Jugar" ahora va al Lobby, no al LevelSelect
+    // "Jugar" va al lobby, no al selector de niveles
     public void StartGame()
     {
         SceneManager.LoadScene(lobbySceneName);
     }
 
-    // Botón "Opciones" del menú principal (ver OptionsMenuUI)
     public void OpenOptions()
     {
         OptionsMenuUI.Show();

@@ -95,7 +95,6 @@ public class FishJumpPath : MonoBehaviour
             Quaternion.Euler(xRotation, 0f, 0f);
     }
 
-
     private void OnDrawGizmos()
     {
         if (pointA == null || pointB == null || centerPoint == null)
@@ -134,5 +133,4 @@ public class FishJumpPath : MonoBehaviour
             previous = pos;
         }
     }
-
 }

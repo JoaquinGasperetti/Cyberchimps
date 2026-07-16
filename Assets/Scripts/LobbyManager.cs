@@ -47,10 +47,6 @@ public class LobbyManager : MonoBehaviour
     private bool secondPlayerConnected = false;
     private Coroutine spinnerCoroutine;
 
-    // -------------------------------------------------------
-    // INIT
-    // -------------------------------------------------------
-
     private void Start()
     {
         buttonHost.onClick.AddListener(OnHostClicked);
@@ -58,9 +54,7 @@ public class LobbyManager : MonoBehaviour
         buttonDisconnect.onClick.AddListener(OnDisconnectClicked);
         buttonStartGame.onClick.AddListener(OnStartGameClicked);
 
-        // Si volvemos al Lobby con la sesión todavía viva (desde el menú de
-        // pausa o el panel de nivel completado), restaurar el panel de lobby
-        // en lugar de mostrar la pantalla de conexión.
+        // si volvemos con la sesion todavia viva, va el panel de lobby directo
         if (NetworkSessionManager.Instance != null && NetworkSessionManager.Instance.IsConnected)
         {
             RestoreActiveSession();
@@ -84,8 +78,7 @@ public class LobbyManager : MonoBehaviour
             ? NetworkSessionManager.Instance.CurrentSession.Code
             : "";
 
-        // ConnectedClientsList solo es confiable en el host; el cliente, si
-        // está conectado, sabe que ambos jugadores existen.
+        // ConnectedClientsList solo es confiable en el host
         secondPlayerConnected = !isHost
             || (NetworkManager.Singleton != null
                 && NetworkManager.Singleton.ConnectedClientsList.Count > 1);
@@ -106,10 +99,6 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    // -------------------------------------------------------
-    // BOTONES
-    // -------------------------------------------------------
-
     private async void OnHostClicked()
     {
         ShowLoadingPanel("Creando sesión...");
@@ -119,7 +108,7 @@ public class LobbyManager : MonoBehaviour
             string code = await NetworkSessionManager.Instance.CreateSessionAsync();
             ShowLobbyPanel(isHost: true, code: code);
 
-            // El host siempre ocupa el Slot 1
+            // el host siempre va al slot 1
             SpawnModel(player1Slot, ref model1Instance);
         }
         catch (System.Exception e)
@@ -145,10 +134,9 @@ public class LobbyManager : MonoBehaviour
             await NetworkSessionManager.Instance.JoinSessionAsync(code);
             ShowLobbyPanel(isHost: false, code: code);
 
-            // El cliente siempre ocupa el Slot 2
-            // El Slot 1 (host) también se muestra para que el cliente vea ambos
-            SpawnModel(player1Slot, ref model1Instance); // modelo del host (decorativo)
-            SpawnModel(player2Slot, ref model2Instance); // modelo del cliente (vos)
+            // el cliente va al slot 2; el modelo del host se muestra igual
+            SpawnModel(player1Slot, ref model1Instance);
+            SpawnModel(player2Slot, ref model2Instance);
         }
         catch (System.Exception e)
         {
@@ -176,19 +164,14 @@ public class LobbyManager : MonoBehaviour
         NetworkSceneLoader.Instance.LoadScene(levelSelectScene);
     }
 
-    // -------------------------------------------------------
-    // EVENTOS DE RED
-    // -------------------------------------------------------
-
     private void OnPlayerConnected(ulong clientId)
     {
-        // Este evento solo lo recibe el HOST cuando alguien se une
+        // esto solo lo recibe el host cuando alguien se une
         if (!NetworkSessionManager.Instance.IsHost) return;
         if (clientId == NetworkManager.Singleton.LocalClientId) return;
 
         secondPlayerConnected = true;
 
-        // Aparece el modelo del cliente en el Slot 2
         SpawnModel(player2Slot, ref model2Instance);
 
         UpdateLobbyStatus();
@@ -198,16 +181,12 @@ public class LobbyManager : MonoBehaviour
     {
         secondPlayerConnected = false;
 
-        // Si el host ve que el cliente se fue, quitamos su modelo
+        // se fue el cliente: sacamos su modelo
         if (NetworkSessionManager.Instance.IsHost)
             DestroyModel(ref model2Instance);
 
         UpdateLobbyStatus();
     }
-
-    // -------------------------------------------------------
-    // MODELOS 3D
-    // -------------------------------------------------------
 
     private void SpawnModel(Transform slot, ref GameObject modelRef)
     {
@@ -220,7 +199,6 @@ public class LobbyManager : MonoBehaviour
         Animator anim = modelRef.GetComponentInChildren<Animator>();
         if (anim == null) return;
 
-        // Activar idle
         foreach (var param in anim.parameters)
         {
             if (param.name == idleAnimBool && param.type == AnimatorControllerParameterType.Bool)
@@ -230,7 +208,6 @@ public class LobbyManager : MonoBehaviour
             }
         }
 
-        // Activar baile si existe el trigger
         foreach (var param in anim.parameters)
         {
             if (param.name == danceAnimTrigger && param.type == AnimatorControllerParameterType.Trigger)
@@ -251,10 +228,6 @@ public class LobbyManager : MonoBehaviour
         DestroyModel(ref model1Instance);
         DestroyModel(ref model2Instance);
     }
-
-    // -------------------------------------------------------
-    // UI
-    // -------------------------------------------------------
 
     private void ShowConnectPanel()
     {
@@ -316,10 +289,6 @@ public class LobbyManager : MonoBehaviour
             labelStatus.text = "Conectado — esperando al host...";
         }
     }
-
-    // -------------------------------------------------------
-    // SPINNER
-    // -------------------------------------------------------
 
     private void StartSpinner()
     {

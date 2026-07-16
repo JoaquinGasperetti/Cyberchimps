@@ -1,11 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
 
-/// <summary>
-/// Puerta sincronizada en red. Cualquier jugador puede abrir/cerrar.
-/// REQUERIDO en el prefab: NetworkObject.
-/// Agregarlo a la lista de Network Prefabs del NetworkManager.
-/// </summary>
 public class DoorInteractable : ActionInteractable
 {
     [SerializeField] private Transform doorPivot;

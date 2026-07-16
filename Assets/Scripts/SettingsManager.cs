@@ -1,15 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// Guarda y aplica las opciones del juego (PlayerPrefs).
-/// Es estático: no necesita ningún GameObject en escena — se aplica solo
-/// al arrancar el juego y cada vez que OptionsMenuUI cambia un valor.
-///
-/// Opciones actuales (pensadas para mobile):
-///  - Volumen general (AudioListener.volume)
-///  - Calidad gráfica (QualitySettings, 0 = Baja … n = Alta)
-///  - Vibración (para que la lean los scripts de gameplay que usen Handheld.Vibrate)
-/// </summary>
 public static class SettingsManager
 {
     private const string KeyVolume = "opt_volume";
@@ -26,7 +16,6 @@ public static class SettingsManager
         }
     }
 
-    /// <summary>Índice dentro de QualitySettings.names.</summary>
     public static int Quality
     {
         get => PlayerPrefs.GetInt(KeyQuality, QualitySettings.GetQualityLevel());
@@ -46,7 +35,6 @@ public static class SettingsManager
 
     public static void Save() => PlayerPrefs.Save();
 
-    /// <summary>Se ejecuta una sola vez al iniciar el juego, antes de la primera escena.</summary>
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void ApplyOnStartup()
     {

@@ -3,15 +3,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-/// <summary>
-/// Maneja el flujo del nivel: countdown inicial, panel de resultados y estrellas.
-///
-/// CAMBIO IMPORTANTE:
-///   El timer YA NO se lleva localmente acá (antes "currentTime" se decrementaba
-///   en Update() de forma independiente en cada cliente → desync entre jugadores).
-///   Ahora LevelManager solo LEE y MUESTRA el tiempo que vive en LevelTimer
-///   (NetworkVariable, autoridad del servidor, sincronizado para ambos jugadores).
-/// </summary>
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance { get; private set; }
@@ -40,7 +31,7 @@ public class LevelManager : MonoBehaviour
     private bool levelCompleted;
     [SerializeField] private string levelSelectorScene = "LevelSelector";
 
-    // UI de progreso de la meta ("En la meta: 1/2"), generada en runtime
+    // cartel "En la meta: 1/2", generado en runtime
     private GameObject goalProgressRoot;
     private TMP_Text goalProgressText;
 
@@ -53,7 +44,6 @@ public class LevelManager : MonoBehaviour
 
     public bool CanPlay { get; private set; }
 
-    /// <summary>Tiempo restante — ahora viene siempre de LevelTimer (sincronizado).</summary>
     public float CurrentTime => LevelTimer.Instance != null ? LevelTimer.Instance.RemainingTime : 0f;
 
     private void Awake()
@@ -87,8 +77,7 @@ public class LevelManager : MonoBehaviour
 
     private System.Collections.IEnumerator WaitForTimerAndStart()
     {
-        // LevelTimer se spawnea en red al cargar la escena — esperamos a que exista
-        // antes de suscribirnos, para no perder el primer valor.
+        // el LevelTimer spawnea por red: esperamos a que exista antes de engancharnos
         while (LevelTimer.Instance == null)
             yield return null;
 
@@ -103,8 +92,7 @@ public class LevelManager : MonoBehaviour
 
     private System.Collections.IEnumerator StartCountdown()
     {
-        // countdownText puede no estar asignado en algunas escenas —
-        // sin el guard, el NRE mataba la corutina y StartTimer() nunca se llamaba.
+        // countdownText puede venir sin asignar; sin este guard se moria la corutina
         if (countdownText != null)
         {
             countdownText.gameObject.SetActive(true);
@@ -130,7 +118,7 @@ public class LevelManager : MonoBehaviour
 
         CanPlay = true;
 
-        // Solo tiene efecto real en el servidor (no-op seguro en los clientes).
+        // en los clientes no hace nada
         LevelTimer.Instance.StartTimer();
     }
 
@@ -144,7 +132,7 @@ public class LevelManager : MonoBehaviour
         if (timerText != null)
             timerText.color = Color.red;
 
-        // Acá se puede enganchar una derrota/fin de nivel por tiempo si el diseño lo pide.
+        // aca iria la derrota por tiempo, si algun dia se suma
     }
 
     private void HandleBonusTimeAdded(float amount)
@@ -182,7 +170,7 @@ public class LevelManager : MonoBehaviour
 
         for (int i = 0; i < stars.Length; i++)
         {
-            // En algunas escenas las estrellas no están asignadas — evitar NRE
+            // en algunas escenas las estrellas no estan asignadas
             if (stars[i] == null) continue;
 
             stars[i].sprite = i < earnedStars
@@ -200,14 +188,14 @@ public class LevelManager : MonoBehaviour
     {
         int earnedStars = 0;
 
-        // ⭐ Completar nivel
+        // estrella 1: completar el nivel
         earnedStars++;
 
-        // ⭐ Tiempo
+        // estrella 2: terminar rapido
         if (HasTimeStar())
             earnedStars++;
 
-        // ⭐ Todos los Cyberdatos
+        // estrella 3: juntar todos los cyberdatos
         if (HasCyberdataStar())
             earnedStars++;
 
@@ -218,7 +206,7 @@ public class LevelManager : MonoBehaviour
     {
         if (levelCompletePanel != null)
         {
-            // Camino "diseñado en editor": panel armado a mano en la escena
+            // panel armado a mano en la escena
             levelCompletePanel.SetActive(true);
 
             if (finalTimeText != null)
@@ -228,8 +216,7 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        // Sin panel asignado → UI generada en runtime, funciona en toda escena.
-        // Solo el host decide a dónde ir; el cliente ve "Esperando al host...".
+        // sin panel asignado usamos la UI generada en runtime
         LevelCompleteUI.Show(
             FormatTime(CurrentTime),
             earnedStars,
@@ -240,25 +227,13 @@ public class LevelManager : MonoBehaviour
             GoToNextLevel);
     }
 
-    // =========================================================
-    // NAVEGACIÓN POST-NIVEL
-    // =========================================================
-
-    /// <summary>
-    /// true si este jugador puede cargar escenas: el host en una sesión de red,
-    /// o cualquiera si se está probando la escena sin red (offline en editor).
-    /// </summary>
     private bool IsSceneAuthority()
     {
         var nm = Unity.Netcode.NetworkManager.Singleton;
-        if (nm == null || !nm.IsListening) return true; // sin red → modo prueba local
+        if (nm == null || !nm.IsListening) return true; // sin red = prueba local
         return nm.IsHost;
     }
 
-    /// <summary>
-    /// Carga una escena para ambos jugadores si hay sesión (solo host),
-    /// o localmente si se está probando sin red.
-    /// </summary>
     private void LoadSceneForEveryone(string sceneName)
     {
         if (string.IsNullOrEmpty(sceneName)) return;
@@ -283,19 +258,13 @@ public class LevelManager : MonoBehaviour
 
     public void GoToNextLevel() => LoadSceneWithInterstitial(nextLevelScene);
 
-    /// <summary>
-    /// Transición con interstitial (AdMob): el anuncio lo ve solo quien dispara
-    /// la carga (el host). AdManager.Interstitial es null-safe y sigue de largo
-    /// si no hay anuncio listo o no pasó el intervalo mínimo — la transición
-    /// nunca se traba por el anuncio.
-    /// </summary>
     private void LoadSceneWithInterstitial(string sceneName)
     {
         if (string.IsNullOrEmpty(sceneName)) return;
 
         if (!IsSceneAuthority())
         {
-            // El cliente no carga escenas; que LoadSceneForEveryone loguee el warning
+            // el cliente no carga escenas
             LoadSceneForEveryone(sceneName);
             return;
         }
@@ -316,10 +285,6 @@ public class LevelManager : MonoBehaviour
         CompleteLevel(null, null);
     }
 
-    /// <summary>
-    /// Versión con stats por jugador — GoalZone la llama vía ClientRpc con la
-    /// foto que tomó el servidor (los wallets son privados entre clientes).
-    /// </summary>
     public void CompleteLevel(ulong[] statClientIds, int[] statCyberdata)
     {
         if (levelCompleted)
@@ -339,10 +304,6 @@ public class LevelManager : MonoBehaviour
         ShowResults(stars, BuildPlayerStatLines(statClientIds, statCyberdata));
     }
 
-    // =========================================================
-    // PROGRESO DE LA META ("En la meta: 1/2")
-    // =========================================================
-
     public void ShowGoalProgress(int current, int required)
     {
         if (levelCompleted) return;
@@ -361,7 +322,7 @@ public class LevelManager : MonoBehaviour
             goalProgressText = SimpleUI.CreateText(canvas.transform, "Progress",
                 "", 46f, Vector2.zero, new Vector2(1100f, 70f));
 
-            // Anclar arriba al centro, debajo del timer
+            // arriba al centro, debajo del timer
             var rt = goalProgressText.rectTransform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
             rt.pivot = new Vector2(0.5f, 1f);
@@ -380,10 +341,6 @@ public class LevelManager : MonoBehaviour
             goalProgressRoot.SetActive(false);
     }
 
-    /// <summary>
-    /// Convierte la foto de stats en líneas legibles, ordenadas por clientId
-    /// (Jugador 1 = host). Marca "(vos)" en el jugador local.
-    /// </summary>
     private string[] BuildPlayerStatLines(ulong[] clientIds, int[] cyberdata)
     {
         if (clientIds == null || cyberdata == null || clientIds.Length == 0)
@@ -406,7 +363,7 @@ public class LevelManager : MonoBehaviour
 
     public void RetryLevel()
     {
-        // En red debe recargarse vía NetworkSceneManager para ambos jugadores
+        // en red se recarga via NetworkSceneManager para los dos
         LoadSceneWithInterstitial(SceneManager.GetActiveScene().name);
     }
 

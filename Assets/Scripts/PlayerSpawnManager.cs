@@ -3,29 +3,16 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// Colocar este script en cada escena de nivel (OnlineTest, etc).
-/// El host lo ejecuta y spawnea un jugador por cada cliente conectado.
-///
-/// SETUP en Unity:
-/// 1. Creá GameObjects vacíos en la escena como puntos de spawn,
-///    nombralos "SpawnPoint1", "SpawnPoint2", etc.
-/// 2. Agregá este script a un GameObject en la escena del nivel.
-/// 3. Asigná el Player prefab y los spawn points en el Inspector.
-/// 4. En el NetworkManager: dejá PlayerPrefab vacío y
-///    AutoSpawnPlayerPrefabClientSide = false.
-/// </summary>
 public class PlayerSpawnManager : NetworkBehaviour
 {
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private Transform[] spawnPoints;
 
-    // Guarda los jugadores spawneados para no duplicar
     private readonly Dictionary<ulong, GameObject> spawnedPlayers = new();
 
     public override void OnNetworkSpawn()
     {
-        // Solo el host spawnea jugadores
+        // spawnea solo el host
         if (!IsServer) return;
 
         StartCoroutine(SpawnAllPlayersDelayed());
@@ -33,7 +20,7 @@ public class PlayerSpawnManager : NetworkBehaviour
 
     private IEnumerator SpawnAllPlayersDelayed()
     {
-        // Pequeño delay para asegurarse que todos los clientes cargaron la escena
+        // un toque de margen para que todos terminen de cargar la escena
         yield return new WaitForSeconds(0.5f);
         SpawnAllPlayers();
     }
@@ -69,7 +56,7 @@ public class PlayerSpawnManager : NetworkBehaviour
             return;
         }
 
-        // SpawnAsPlayerObject asigna ownership al cliente correspondiente
+        // SpawnAsPlayerObject le da el ownership al cliente
         netObj.SpawnAsPlayerObject(clientId, destroyWithScene: true);
         spawnedPlayers[clientId] = player;
 
@@ -81,7 +68,7 @@ public class PlayerSpawnManager : NetworkBehaviour
         if (spawnPoints != null && spawnPoints.Length > index && spawnPoints[index] != null)
             return spawnPoints[index].position;
 
-        // Fallback: posición por defecto separada lateralmente
+        // por si faltan spawn points
         return new Vector3(index * 2f, 0f, 0f);
     }
 }

@@ -4,15 +4,9 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-/// <summary>
-/// Helpers para construir UI básica en runtime (paneles generados por código).
-/// Usado por LevelCompleteUI y PauseMenuUI como UI funcional por defecto —
-/// cuando se diseñe la UI definitiva en el editor, estos paneles se pueden
-/// reemplazar asignando las referencias serializadas correspondientes.
-/// </summary>
 public static class SimpleUI
 {
-    // Paleta simple acorde al estilo hyper-casual
+    // paleta del juego
     public static readonly Color PanelColor = new Color(0.08f, 0.09f, 0.16f, 0.92f);
     public static readonly Color OverlayColor = new Color(0f, 0f, 0f, 0.55f);
     public static readonly Color GreenButton = new Color(0.22f, 0.68f, 0.32f, 1f);
@@ -20,10 +14,6 @@ public static class SimpleUI
     public static readonly Color RedButton = new Color(0.80f, 0.25f, 0.25f, 1f);
     public static readonly Color GreyButton = new Color(0.35f, 0.35f, 0.40f, 1f);
 
-    /// <summary>
-    /// Canvas overlay propio (ScaleWithScreenSize 1920x1080) para no depender
-    /// del canvas de controles móviles. sortOrder alto = dibuja encima de todo.
-    /// </summary>
     public static Canvas CreateOverlayCanvas(string name, int sortOrder)
     {
         EnsureEventSystem();
@@ -42,7 +32,6 @@ public static class SimpleUI
         return canvas;
     }
 
-    /// <summary>Imagen full-screen semitransparente que bloquea el input detrás del panel.</summary>
     public static Image CreateOverlay(Transform parent)
     {
         var img = CreateImage(parent, "Overlay", OverlayColor);
@@ -96,10 +85,6 @@ public static class SimpleUI
         return button;
     }
 
-    /// <summary>
-    /// Slider horizontal simple (fondo oscuro + relleno de color + handle),
-    /// construido con rects de color plano como el resto de SimpleUI.
-    /// </summary>
     public static Slider CreateSlider(
         Transform parent, string name, Vector2 anchoredPos, Vector2 size,
         float initialValue, UnityAction<float> onChanged)
@@ -109,12 +94,10 @@ public static class SimpleUI
         var rootRt = root.AddComponent<RectTransform>();
         Center(rootRt, anchoredPos, size);
 
-        // Fondo (barra)
         var bg = CreateImage(root.transform, "Background", new Color(0f, 0f, 0f, 0.45f));
         Stretch(bg.rectTransform);
         bg.raycastTarget = false;
 
-        // Área de relleno
         var fillArea = new GameObject("Fill Area");
         fillArea.transform.SetParent(root.transform, false);
         var fillAreaRt = fillArea.AddComponent<RectTransform>();
@@ -130,7 +113,6 @@ public static class SimpleUI
         fillRt.offsetMax = Vector2.zero;
         fill.raycastTarget = false;
 
-        // Handle
         var handleArea = new GameObject("Handle Slide Area");
         handleArea.transform.SetParent(root.transform, false);
         var handleAreaRt = handleArea.AddComponent<RectTransform>();
@@ -157,8 +139,6 @@ public static class SimpleUI
         return slider;
     }
 
-    // ── Internos ──────────────────────────────────────────────────────────
-
     private static Image CreateImage(Transform parent, string name, Color color)
     {
         var go = new GameObject(name);
@@ -184,10 +164,6 @@ public static class SimpleUI
         rt.offsetMax = Vector2.zero;
     }
 
-    /// <summary>
-    /// Los niveles ya traen EventSystem (por los controles móviles), pero por
-    /// las dudas creamos uno con el input module del Input System nuevo.
-    /// </summary>
     private static void EnsureEventSystem()
     {
         if (Object.FindFirstObjectByType<EventSystem>() != null) return;

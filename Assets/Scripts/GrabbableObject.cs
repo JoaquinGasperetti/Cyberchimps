@@ -1,29 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
 
-/// <summary>
-/// Objeto agarrable sincronizado en red.
-///
-/// COMPORTAMIENTO DEL BOTÓN DE ACCIÓN:
-///   - Tap (soltar rápido < holdThreshold): lanza la caja hacia adelante
-///   - Hold (mantener >= holdThreshold): suelta la caja en el suelo enfrente del jugador
-///
-/// MODELO DE SINCRONIZACIÓN (fix de trayectorias divergentes):
-///   - La física corre SOLO en el servidor. En los clientes el Rigidbody es
-///     siempre kinematic y la posición llega por el NetworkTransform del prefab
-///     (server-authoritative). Antes cada cliente simulaba su propia caída y el
-///     lanzamiento se veía distinto en cada pantalla.
-///   - Mientras está sostenida, TODOS los peers pegan la caja al HoldPoint del
-///     jugador que la lleva en LateUpdate (pisa la interpolación del
-///     NetworkTransform → la caja se ve pegada a la mano sin lag).
-///
-/// SETUP DE LA CAJA:
-///   - NetworkObject ✓
-///   - NetworkTransform (server-authoritative) ✓
-///   - Rigidbody ✓
-///   - Tag: "Box"  ← necesario para que PuzzleButton la detecte
-///   - Collider (no trigger)
-/// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class GrabbableObject : ActionInteractable
 {
@@ -37,15 +14,14 @@ public class GrabbableObject : ActionInteractable
 
     private Rigidbody rb;
 
-    // Quién sostiene la caja (ulong.MaxValue = nadie)
+    // quien tiene la caja (MaxValue = nadie)
     private NetworkVariable<ulong> holderClientId = new NetworkVariable<ulong>(
         ulong.MaxValue,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
     );
 
-    // Cache del interactor que sostiene la caja (se resuelve al cambiar holder,
-    // no cada frame — FindObjectsByType por frame era muy caro en mobile)
+    // cacheado porque buscarlo cada frame era carisimo en mobile
     private PlayerInteractor holderInteractor;
 
     private void Awake()
@@ -57,12 +33,12 @@ public class GrabbableObject : ActionInteractable
     {
         holderClientId.OnValueChanged += OnHolderChanged;
 
-        // Los clientes NUNCA simulan física propia: el NetworkTransform
-        // (server-authoritative) es la única fuente de posición.
+        // los clientes no simulan fisica: la posicion llega por el
+        // NetworkTransform del server
         if (!IsServer)
             rb.isKinematic = true;
 
-        // Reconexión / late join: si ya estaba sostenida, reflejar el estado
+        // por si entramos tarde y la caja ya estaba agarrada
         if (holderClientId.Value != ulong.MaxValue)
             OnHolderChanged(ulong.MaxValue, holderClientId.Value);
     }
@@ -72,33 +48,23 @@ public class GrabbableObject : ActionInteractable
         holderClientId.OnValueChanged -= OnHolderChanged;
     }
 
-    // =========================================================
-    // HOLDER CHANGED — se ejecuta en todos los clientes
-    // =========================================================
-
     private void OnHolderChanged(ulong previous, ulong current)
     {
         bool isHeld = current != ulong.MaxValue;
 
-        // Solo el servidor alterna la simulación; los clientes quedan kinematic
+        // el server prende y apaga la fisica; los clientes quedan kinematic siempre
         if (IsServer)
             rb.isKinematic = isHeld;
 
-        // En mano no colisiona (no empuja jugadores ni pisa botones)
+        // en la mano no colisiona, asi no empuja gente ni pisa botones
         rb.detectCollisions = !isHeld;
 
         holderInteractor = isHeld ? FindInteractorByClientId(current) : null;
     }
 
-    // =========================================================
-    // UPDATE — safeguard del servidor
-    // LATEUPDATE — seguir al HoldPoint mientras es sostenida
-    // =========================================================
-
     private void Update()
     {
-        // Si el jugador que la sostenía se desconectó, el servidor la suelta
-        // (antes quedaba flotando para siempre).
+        // si el que la tenia se desconecto, el server la suelta
         if (IsServer && holderClientId.Value != ulong.MaxValue && holderInteractor == null)
         {
             holderInteractor = FindInteractorByClientId(holderClientId.Value);
@@ -109,9 +75,8 @@ public class GrabbableObject : ActionInteractable
 
     private void LateUpdate()
     {
-        // LateUpdate para pisar la interpolación del NetworkTransform:
-        // mientras está sostenida, la caja se ve pegada a la mano en todos
-        // los clientes, sin lag de red.
+        // en LateUpdate para pisarle la interpolacion al NetworkTransform:
+        // la caja queda pegada a la mano sin lag en todas las pantallas
         if (holderClientId.Value == ulong.MaxValue) return;
 
         if (holderInteractor == null)
@@ -124,36 +89,25 @@ public class GrabbableObject : ActionInteractable
         }
     }
 
-    // =========================================================
-    // INTERACCIÓN
-    // =========================================================
-
     public override bool CanInteract(PlayerInteractor interactor)
     {
         return holderClientId.Value == ulong.MaxValue
             || holderClientId.Value == interactor.OwnerClientId;
     }
 
-    /// <summary>
-    /// Llamado por PlayerInteractor al presionar el botón de acción.
-    /// Si no sostiene → agarrar.
-    /// Si sostiene → PlayerInteractor maneja tap/hold y llama Throw o Place.
-    /// </summary>
     public override void Interact(PlayerInteractor interactor)
     {
         if (holderClientId.Value == ulong.MaxValue)
             GrabServerRpc(interactor.OwnerClientId);
-        // Si ya sostiene, la lógica tap/hold se maneja en PlayerInteractor
+        // si ya la tiene, el tap/hold lo maneja PlayerInteractor
     }
 
-    /// <summary>Lanzar la caja — llamado por PlayerInteractor en tap.</summary>
     public void Throw(PlayerInteractor interactor)
     {
         if (holderClientId.Value != interactor.OwnerClientId) return;
         ThrowServerRpc(interactor.OwnerClientId, interactor.transform.forward);
     }
 
-    /// <summary>Colocar la caja enfrente — llamado por PlayerInteractor en hold.</summary>
     public void Place(PlayerInteractor interactor)
     {
         if (holderClientId.Value != interactor.OwnerClientId) return;
@@ -161,21 +115,17 @@ public class GrabbableObject : ActionInteractable
         Vector3 placePos = interactor.transform.position
                          + interactor.transform.forward * placeDistance;
 
-        // Raycast hacia abajo para apoyar la caja en el suelo
+        // raycast para apoyarla en el piso
         if (Physics.Raycast(placePos + Vector3.up * 2f, Vector3.down, out RaycastHit hit, 5f))
-            placePos.y = hit.point.y + 0.5f; // 0.5 = mitad de la caja aprox
+            placePos.y = hit.point.y + 0.5f; // media caja aprox
 
         PlaceServerRpc(interactor.OwnerClientId, placePos);
     }
 
-    // =========================================================
-    // SERVER RPCs
-    // =========================================================
-
     [ServerRpc(RequireOwnership = false)]
     private void GrabServerRpc(ulong clientId)
     {
-        // Ya la tiene otro jugador (dos agarres casi simultáneos) → ignorar
+        // por si los dos la agarran casi al mismo tiempo
         if (holderClientId.Value != ulong.MaxValue) return;
 
         PlayerInteractor interactor = FindInteractorByClientId(clientId);
@@ -225,7 +175,6 @@ public class GrabbableObject : ActionInteractable
         });
     }
 
-    /// <summary>Soltar forzado desde el servidor (ej: el holder se desconectó).</summary>
     private void ReleaseOnServer()
     {
         holderClientId.Value = ulong.MaxValue;
@@ -248,10 +197,6 @@ public class GrabbableObject : ActionInteractable
         PlayerInteractor local = PlayerInputHandler.LocalInstance?.GetComponent<PlayerInteractor>();
         local?.ClearHeldInteractable(this);
     }
-
-    // =========================================================
-    // HELPER
-    // =========================================================
 
     private static PlayerInteractor FindInteractorByClientId(ulong clientId)
     {

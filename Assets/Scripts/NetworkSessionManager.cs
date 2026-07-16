@@ -6,10 +6,6 @@ using Unity.Services.Core;
 using Unity.Services.Multiplayer;
 using UnityEngine;
 
-/// <summary>
-/// Singleton persistente que maneja toda la sesión de red.
-/// Vive en DontDestroyOnLoad y es accesible desde cualquier escena.
-/// </summary>
 public class NetworkSessionManager : MonoBehaviour
 {
     public static NetworkSessionManager Instance { get; private set; }

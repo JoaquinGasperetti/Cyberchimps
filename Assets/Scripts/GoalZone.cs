@@ -2,20 +2,6 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// Zona de meta cooperativa: el nivel se completa cuando TODOS los jugadores
-/// conectados están adentro al mismo tiempo.
-///
-/// - Con un solo jugador adentro, ambos ven "En la meta: 1/2" (vía LevelManager).
-/// - Cuando entran todos, el servidor toma una foto de las stats de cada
-///   jugador (Cyberdatos del nivel) y la manda por ClientRpc — los wallets son
-///   privados durante la partida (ReadPermission.Owner), pero el resumen final
-///   se comparte con ambos.
-///
-/// SETUP en Unity:
-/// 1. GameObject con Collider en modo trigger + este script.
-/// 2. Agregar componente NetworkObject (in-scene placed, igual que LevelTimer).
-/// </summary>
 public class GoalZone : NetworkBehaviour
 {
     [Tooltip("0 = automático: se necesitan TODOS los jugadores conectados. " +
@@ -31,7 +17,7 @@ public class GoalZone : NetworkBehaviour
     private NetworkVariable<bool> completed = new NetworkVariable<bool>(
         false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-    // Solo el servidor lo usa — qué clientes están dentro de la zona
+    // solo lo usa el server: quienes estan adentro de la zona
     private readonly HashSet<ulong> clientsInside = new HashSet<ulong>();
 
     public override void OnNetworkSpawn()
@@ -59,8 +45,6 @@ public class GoalZone : NetworkBehaviour
         }
     }
 
-    // ── Triggers (solo el servidor cuenta) ────────────────────────────────
-
     private void OnTriggerEnter(Collider other) => HandlePlayerTrigger(other, entered: true);
     private void OnTriggerExit(Collider other) => HandlePlayerTrigger(other, entered: false);
 
@@ -79,8 +63,6 @@ public class GoalZone : NetworkBehaviour
         TryComplete();
     }
 
-    // ── Cambios de conexión (server) ──────────────────────────────────────
-
     private void HandleClientConnected(ulong clientId)
     {
         RefreshRequiredPlayers();
@@ -88,11 +70,11 @@ public class GoalZone : NetworkBehaviour
 
     private void HandleClientDisconnected(ulong clientId)
     {
-        // OnTriggerExit no se dispara si el player despawnea — limpiar a mano.
+        // OnTriggerExit no salta si el player despawnea, hay que limpiarlo a mano
         clientsInside.Remove(clientId);
         playersInZone.Value = clientsInside.Count;
         RefreshRequiredPlayers();
-        // Si el jugador restante ya estaba en la meta, el nivel se completa solo.
+        // si el que queda ya estaba en la meta, el nivel se completa solo
         TryComplete();
     }
 
@@ -103,8 +85,6 @@ public class GoalZone : NetworkBehaviour
             : Mathf.Max(1, NetworkManager.ConnectedClientsIds.Count);
     }
 
-    // ── Completado ────────────────────────────────────────────────────────
-
     private void TryComplete()
     {
         if (!IsServer || completed.Value) return;
@@ -112,7 +92,7 @@ public class GoalZone : NetworkBehaviour
 
         completed.Value = true;
 
-        // Foto de stats por jugador — solo el servidor puede leer todos los wallets
+        // solo el server puede leer los wallets de todos
         var wallets = FindObjectsByType<PlayerCyberdataWallet>(FindObjectsSortMode.None);
         var clientIds = new ulong[wallets.Length];
         var cyberdata = new int[wallets.Length];
@@ -139,8 +119,6 @@ public class GoalZone : NetworkBehaviour
             LevelManager.Instance.CompleteLevel(clientIds, cyberdata);
         }
     }
-
-    // ── UI de progreso (corre en TODOS los clientes) ──────────────────────
 
     private void HandleProgressChanged(int oldValue, int newValue)
     {

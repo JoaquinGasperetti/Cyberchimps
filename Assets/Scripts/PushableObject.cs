@@ -1,20 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
 
-/// <summary>
-/// Objeto empujable sincronizado en red.
-///
-/// MODELO DE SINCRONIZACIÓN (fix de desincronización de cajas):
-///   - La física corre SOLO en el servidor. En los clientes el Rigidbody es
-///     siempre kinematic y la posición llega por el NetworkTransform del prefab
-///     (server-authoritative). Antes cada cliente integraba la velocity
-///     sincronizada por su cuenta y las posiciones divergían con el tiempo.
-///   - El jugador que empuja se pega a la caja LOCALMENTE (ver
-///     PlayerInteractor.FixedUpdate). Antes el servidor escribía la posición
-///     del player, pero el Player usa ClientNetworkTransform (autoridad del
-///     dueño) así que esa escritura peleaba con la sincronización y el
-///     jugador cliente no acompañaba a la caja.
-/// </summary>
 [RequireComponent(typeof(Rigidbody))]
 public class PushableObject : ActionInteractable
 {
@@ -36,7 +22,7 @@ public class PushableObject : ActionInteractable
         NetworkVariableWritePermission.Server
     );
 
-    // PushSpeed sincronizado para que el Animator del remoto también lo reciba
+    // sincronizado para que el Animator del remoto tambien lo reciba
     private NetworkVariable<float> syncedPushSpeed = new NetworkVariable<float>(
         0f,
         NetworkVariableReadPermission.Everyone,
@@ -45,18 +31,11 @@ public class PushableObject : ActionInteractable
 
     public float SyncedPushSpeed => syncedPushSpeed.Value;
 
-    /// <summary>ClientId del jugador que está empujando (ulong.MaxValue = nadie).</summary>
     public ulong PusherClientId => pusherClientId.Value;
 
-    /// <summary>Eje cardinal fijo del empuje actual (para el glue del jugador).</summary>
     public Vector3 PushAxis => pushAxis.Value;
 
-    /// <summary>Distancia jugador-caja mientras empuja (para el glue del jugador).</summary>
     public float SnapDistance => snapDistance;
-
-    // =========================================================
-    // INIT
-    // =========================================================
 
     private void Awake()
     {
@@ -68,8 +47,8 @@ public class PushableObject : ActionInteractable
     {
         pusherClientId.OnValueChanged += OnPusherChanged;
 
-        // Los clientes nunca simulan física propia: la posición llega por el
-        // NetworkTransform (server-authoritative) del prefab.
+        // los clientes no simulan fisica: la posicion llega por el
+        // NetworkTransform del server
         if (!IsServer)
             rb.isKinematic = true;
     }
@@ -79,15 +58,11 @@ public class PushableObject : ActionInteractable
         pusherClientId.OnValueChanged -= OnPusherChanged;
     }
 
-    // =========================================================
-    // CALLBACKS
-    // =========================================================
-
     private void OnPusherChanged(ulong previous, ulong current)
     {
         bool isPushed = current != ulong.MaxValue;
 
-        // Solo el servidor simula; en clientes el rb queda siempre kinematic
+        // solo simula el server; en los clientes el rb queda kinematic
         if (IsServer)
         {
             rb.isKinematic = !isPushed;
@@ -114,10 +89,6 @@ public class PushableObject : ActionInteractable
             local.StopPush();
         }
     }
-
-    // =========================================================
-    // INTERACCIÓN
-    // =========================================================
 
     public override bool CanInteract(PlayerInteractor interactor)
     {
@@ -149,12 +120,6 @@ public class PushableObject : ActionInteractable
         }
     }
 
-    // =========================================================
-    // APLICAR EMPUJE
-    // Solo hacia adelante (proyección positiva sobre el eje).
-    // Si el jugador empuja hacia atrás o perpendicular → sin efecto.
-    // =========================================================
-
     public void ApplyPush(Vector2 input, Camera cam)
     {
         if (cam == null) return;
@@ -163,10 +128,9 @@ public class PushableObject : ActionInteractable
         Vector3 right = Vector3.ProjectOnPlane(cam.transform.right, Vector3.up).normalized;
         Vector3 moveDir = right * input.x + forward * input.y;
 
-        // Proyectar sobre el eje fijo
         float projection = Vector3.Dot(moveDir, pushAxis.Value);
 
-        // Solo hacia adelante: ignorar input negativo (hacia atrás)
+        // solo se empuja para adelante
         projection = Mathf.Max(0f, projection);
 
         Vector3 velocity = pushAxis.Value * (projection * pushSpeed);
@@ -182,17 +146,11 @@ public class PushableObject : ActionInteractable
 
         velocity.y = rb.linearVelocity.y;
         rb.linearVelocity = velocity;
-        syncedPushSpeed.Value = speed; // 0–1, alimenta el Blend Tree del Animator
+        syncedPushSpeed.Value = speed; // 0 a 1, alimenta el blend tree del Animator
 
-        // NOTA: acá antes se movía el transform del jugador desde el servidor.
-        // Se quitó porque el Player es owner-authoritative (ClientNetworkTransform)
-        // y esa escritura peleaba con la posición que manda el dueño.
-        // Ahora el dueño se pega solo a la caja en PlayerInteractor.FixedUpdate.
+        // ojo: aca no se mueve al player desde el server; es owner-authoritative
+        // y eso peleaba con la sync. El dueño se pega solo en PlayerInteractor.
     }
-
-    // =========================================================
-    // HELPERS
-    // =========================================================
 
     private static Vector3 SnapToCardinalAxis(Vector3 dir)
     {

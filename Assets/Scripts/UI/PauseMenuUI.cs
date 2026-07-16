@@ -4,21 +4,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-/// <summary>
-/// Menú de opciones in-game, generado en runtime.
-/// LevelManager lo crea automáticamente en cada escena de nivel.
-///
-/// Muestra un botón de pausa (⏸) arriba a la derecha que abre el menú:
-///  - Continuar: cierra el menú.
-///  - Volver al Lobby (solo host): lleva a AMBOS jugadores al Lobby por red,
-///    manteniendo la sesión viva.
-///  - Salir al menú principal: abandona la sesión (solo este jugador) y carga
-///    MainMenu localmente. Si sale el host, el cliente se desconecta y
-///    GameManager lo devuelve al menú.
-///
-/// NOTA: en multiplayer no se pausa el tiempo (Time.timeScale queda intacto) —
-/// el otro jugador sigue jugando.
-/// </summary>
 public class PauseMenuUI : MonoBehaviour
 {
     [SerializeField] private string lobbyScene = "Lobby";
@@ -43,8 +28,6 @@ public class PauseMenuUI : MonoBehaviour
         menuRoot.SetActive(false);
     }
 
-    // ── Construcción ──────────────────────────────────────────────────────
-
     private void BuildPauseButton()
     {
         var button = SimpleUI.CreateButton(
@@ -52,7 +35,7 @@ public class PauseMenuUI : MonoBehaviour
             Vector2.zero, new Vector2(90f, 90f),
             SimpleUI.GreyButton, ToggleMenu);
 
-        // Anclar arriba a la derecha (CreateButton lo deja centrado)
+        // anclarlo arriba a la derecha (CreateButton lo deja centrado)
         var rt = button.GetComponent<RectTransform>();
         rt.anchorMin = rt.anchorMax = new Vector2(1f, 1f);
         rt.pivot = new Vector2(1f, 1f);
@@ -91,7 +74,7 @@ public class PauseMenuUI : MonoBehaviour
         SimpleUI.CreateButton(p, "ButtonQuit", "Salir al menú principal",
             new Vector2(0f, -220f), size, SimpleUI.RedButton, OnQuitClicked);
 
-        // Solo el host puede llevar a los dos al Lobby (carga de escena en red)
+        // solo el host puede llevar a los dos al lobby
         bool isHost = NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost;
         lobbyButton.interactable = isHost;
         if (!isHost)
@@ -100,8 +83,6 @@ public class PauseMenuUI : MonoBehaviour
             if (label != null) label.text = "Volver al Lobby (solo host)";
         }
     }
-
-    // ── Acciones ──────────────────────────────────────────────────────────
 
     private void ToggleMenu()
     {
@@ -127,7 +108,7 @@ public class PauseMenuUI : MonoBehaviour
         if (NetworkSessionManager.Instance != null)
             await NetworkSessionManager.Instance.LeaveSessionAsync();
 
-        // Transición natural → interstitial (null-safe, sigue de largo si no hay)
+        // interstitial antes de salir; si no hay cargado sigue directo
         AdManager.Interstitial(() => SceneManager.LoadScene(mainMenuScene));
     }
 }

@@ -1,11 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// GameManager simplificado para la escena de juego (nivel).
-/// La sesión ya está iniciada desde el Lobby.
-/// Solo maneja eventos de desconexión durante el juego.
-/// </summary>
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private string lobbyScene = "Lobby";
@@ -32,10 +27,8 @@ public class GameManager : MonoBehaviour
         var nm = NetworkManager.Singleton;
         if (nm == null || handlingDisconnect) return;
 
-        // Somos CLIENTE y se cayó nuestra conexión (el host cerró la sesión o
-        // salió al menú) → limpiar la sesión y volver al menú principal.
-        // En el host este callback llega cuando se va el cliente: ahí no
-        // hacemos nada, el host puede seguir jugando o salir desde el menú.
+        // si somos cliente y se corto la conexion, limpiamos y volvemos al menu;
+        // al host no le hacemos nada cuando se va el cliente
         bool lostConnection = !nm.IsHost
             && (clientId == NetworkManager.ServerClientId || clientId == nm.LocalClientId);
 

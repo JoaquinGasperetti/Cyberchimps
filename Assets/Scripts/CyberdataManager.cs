@@ -47,7 +47,7 @@ public class CyberdataManager : NetworkBehaviour
         levelCollected.Value = 0;
     }
 
-    // Llamado desde el ClientRpc de CyberdataCollectible — solo el servidor modifica el valor
+    // solo el server toca este valor
     public void CollectCyberdata()
     {
         if (!IsServer) return;

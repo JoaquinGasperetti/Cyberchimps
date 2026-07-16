@@ -1,17 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
 
-/// <summary>
-/// Bonus de tiempo (prefab "BonusItem"). Suma tiempo al LevelTimer compartido,
-/// visible/sincronizado para AMBOS jugadores.
-///
-/// REQUERIDO en el prefab BonusItem:
-///  - Agregar un componente NetworkObject (igual que tiene Cyberdato.prefab).
-///  - Agregar el prefab a la lista de Network Prefabs del NetworkManager.
-///
-/// Solo el servidor valida la colisión y aplica el bonus (evita duplicar el
-/// bonus si por lag ambos clientes detectan el trigger).
-/// </summary>
 public class TimePickup : NetworkBehaviour
 {
     [SerializeField] private float timeToAdd = 5f;
@@ -31,7 +20,7 @@ public class TimePickup : NetworkBehaviour
             LevelTimer.Instance.AddBonusTime(timeToAdd);
         }
 
-        // Despawn sincroniza la destrucción en todos los clientes.
+        // el despawn lo destruye en todos los clientes
         NetworkObject.Despawn(true);
     }
 }

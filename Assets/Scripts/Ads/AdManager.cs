@@ -5,46 +5,25 @@ using GoogleMobileAds.Ump.Api;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// Administrador central de anuncios (Google AdMob, plugin v11.2.0).
-///
-/// Se autoinstancia al arrancar el juego (RuntimeInitializeOnLoadMethod) y
-/// persiste entre escenas. Maneja los 5 formatos con los IDs del proyecto:
-///   - App Open  : al abrir la app y al volver del segundo plano (solo en menús)
-///   - Banner    : fijo abajo en las pantallas de menú (MainMenu / Lobby / LevelSelect)
-///   - Interstitial : en transiciones que dispara el host (fin de nivel / game over)
-///   - Rewarded  : opt-in — revivir en Game Over
-///   - Rewarded Interstitial : opt-in — recompensa extra al completar un nivel
-///
-/// POLÍTICA DE GOOGLE (respetada acá):
-///   - Nunca se muestran dos anuncios full-screen a la vez (guard _showingFullScreen).
-///   - No se muestran full-screen durante el gameplay activo (solo en menús o en
-///     las pantallas de transición fin-de-nivel/game-over).
-///   - El banner no tapa los controles: solo aparece en menús, no en el nivel.
-///   - Los interstitials tienen un intervalo mínimo para no ser intrusivos.
-///   - Las recompensas se otorgan SOLO si el usuario terminó de ver el anuncio.
-/// </summary>
 public class AdManager : MonoBehaviour
 {
     public static AdManager Instance { get; private set; }
 
-    // ── IDs de bloques de anuncios (AdMob) ────────────────────────────────
     private const string AppOpenId             = "ca-app-pub-2266949018056491/4808218513";
     private const string BannerId              = "ca-app-pub-2266949018056491/6464116356";
     private const string InterstitialId        = "ca-app-pub-2266949018056491/1196276561";
     private const string RewardedId            = "ca-app-pub-2266949018056491/3322947690";
     private const string RewardedInterstitialId = "ca-app-pub-2266949018056491/3837953016";
 
-    // Escenas que SÍ son menú (ahí van banner y app-open; el resto es gameplay)
+    // en estas escenas va el banner y el app open; en los niveles no
     private static readonly HashSet<string> MenuScenes =
         new HashSet<string> { "MainMenu", "Lobby", "LevelSelect" };
 
     private const float InterstitialMinInterval = 45f; // segundos entre interstitials
 
-    // ── Estado ────────────────────────────────────────────────────────────
     private bool _initialized;
-    private bool _showingFullScreen;      // hay un anuncio full-screen en pantalla
-    private bool _wasBackgrounded;        // la app estuvo en segundo plano
+    private bool _showingFullScreen;
+    private bool _wasBackgrounded;
     private float _lastInterstitialTime = -999f;
 
     private BannerView _banner;
@@ -53,10 +32,6 @@ public class AdManager : MonoBehaviour
     private RewardedInterstitialAd _rewardedInterstitial;
     private AppOpenAd _appOpen;
     private DateTime _appOpenExpire;
-
-    // =========================================================
-    // BOOTSTRAP / INIT
-    // =========================================================
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -72,8 +47,8 @@ public class AdManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // CLAVE: que los callbacks de anuncios se disparen en el hilo principal
-        // de Unity — así podemos cargar escenas y tocar la UI desde ellos sin crashear.
+        // que los callbacks caigan en el hilo principal de Unity,
+        // si no no se puede tocar UI ni cargar escenas desde ellos
         MobileAds.RaiseAdEventsOnUnityMainThread = true;
 
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -82,21 +57,17 @@ public class AdManager : MonoBehaviour
     private void Start()
     {
 #if UNITY_EDITOR
-        // En el editor no hay UMP real (no hay formulario configurable) y
-        // CanRequestAds() daría false, bloqueando la inicialización.
-        // Inicializamos directo → el plugin muestra sus PLACEHOLDERS de anuncio
-        // en Play Mode (banner, interstitial, rewarded y app-open de mentira).
+        // en el editor no hay UMP: inicializamos directo y el plugin
+        // muestra sus anuncios de mentira (placeholders)
         InitializeAds();
 #else
-        // ── Consentimiento UMP (GDPR/EEA) — requerido por la política de Google ──
-        // Flujo oficial v11: actualizar info de consentimiento → mostrar el
-        // formulario solo si hace falta → inicializar el SDK solo si se puede.
+        // consentimiento UMP: si hace falta se muestra el formulario
+        // antes de inicializar el SDK
         ConsentInformation.Update(new ConsentRequestParameters(), updateError =>
         {
             if (updateError != null)
             {
-                // Sin conexión o sin formulario configurado en la consola de AdMob:
-                // seguimos igual — fuera del EEA no se requiere el formulario.
+                // si falla seguimos igual, fuera de Europa el formulario no es obligatorio
                 Debug.LogWarning($"[AdManager] UMP update: {updateError.Message}");
                 InitializeAds();
                 return;
@@ -129,7 +100,6 @@ public class AdManager : MonoBehaviour
             LoadRewarded();
             LoadRewardedInterstitial();
 
-            // Banner acorde a la escena actual + app-open de apertura
             RefreshBanner(SceneManager.GetActiveScene().name);
             ShowAppOpenIfReady();
         });
@@ -148,10 +118,6 @@ public class AdManager : MonoBehaviour
     private static bool CurrentIsMenu()
         => MenuScenes.Contains(SceneManager.GetActiveScene().name);
 
-    // =========================================================
-    // APP OPEN — apertura y vuelta del segundo plano
-    // =========================================================
-
     private void OnApplicationPause(bool paused)
     {
         if (paused) _wasBackgrounded = true;
@@ -159,8 +125,7 @@ public class AdManager : MonoBehaviour
 
     private void OnApplicationFocus(bool hasFocus)
     {
-        // Al volver del segundo plano mostramos App Open (solo en menús, para no
-        // interrumpir una partida co-op en curso del otro jugador).
+        // al volver de segundo plano va el app open, pero solo en menus
         if (hasFocus && _wasBackgrounded)
         {
             _wasBackgrounded = false;
@@ -178,7 +143,7 @@ public class AdManager : MonoBehaviour
         {
             if (error != null || ad == null) return;
             _appOpen = ad;
-            _appOpenExpire = DateTime.Now + TimeSpan.FromHours(4); // caducan a las 4h
+            _appOpenExpire = DateTime.Now + TimeSpan.FromHours(4); // vencen a las 4 horas
             ad.OnAdFullScreenContentOpened += () => _showingFullScreen = true;
             ad.OnAdFullScreenContentClosed += () => { _showingFullScreen = false; LoadAppOpen(); };
             ad.OnAdFullScreenContentFailed += _ => { _showingFullScreen = false; LoadAppOpen(); };
@@ -194,10 +159,6 @@ public class AdManager : MonoBehaviour
         _appOpen.Show();
         FixEditorPlaceholders();
     }
-
-    // =========================================================
-    // BANNER — fijo abajo en los menús
-    // =========================================================
 
     private void RefreshBanner(string sceneName)
     {
@@ -222,10 +183,6 @@ public class AdManager : MonoBehaviour
         _banner = null;
     }
 
-    // =========================================================
-    // INTERSTITIAL — transiciones (lo dispara el host)
-    // =========================================================
-
     private void LoadInterstitial()
     {
         if (!_initialized) return;
@@ -244,11 +201,6 @@ public class AdManager : MonoBehaviour
 
     private Action _onInterstitialClosed;
 
-    /// <summary>
-    /// Muestra un interstitial y ejecuta <paramref name="onClosed"/> al cerrarse.
-    /// Si no hay anuncio listo / está capado / ya hay un full-screen, ejecuta
-    /// <paramref name="onClosed"/> de una (así la transición nunca se traba).
-    /// </summary>
     public void ShowInterstitial(Action onClosed = null)
     {
         bool capped = Time.unscaledTime - _lastInterstitialTime < InterstitialMinInterval;
@@ -277,10 +229,6 @@ public class AdManager : MonoBehaviour
         FixEditorPlaceholders();
     }
 
-    // =========================================================
-    // REWARDED — opt-in (revivir)
-    // =========================================================
-
     private void LoadRewarded()
     {
         if (!_initialized) return;
@@ -299,17 +247,12 @@ public class AdManager : MonoBehaviour
 
     public bool RewardedReady => _rewarded != null && _rewarded.CanShowAd();
 
-    /// <summary>Muestra el rewarded; <paramref name="onReward"/> se llama SOLO si se completó.</summary>
     public void ShowRewarded(Action onReward)
     {
         if (_showingFullScreen || !RewardedReady) return;
         _rewarded.Show(_ => onReward?.Invoke());
         FixEditorPlaceholders();
     }
-
-    // =========================================================
-    // REWARDED INTERSTITIAL — recompensa extra en transición
-    // =========================================================
 
     private void LoadRewardedInterstitial()
     {
@@ -331,7 +274,6 @@ public class AdManager : MonoBehaviour
     public bool RewardedInterstitialReady =>
         _rewardedInterstitial != null && _rewardedInterstitial.CanShowAd();
 
-    /// <summary>Muestra el rewarded interstitial; <paramref name="onReward"/> solo si se completó.</summary>
     public void ShowRewardedInterstitial(Action onReward)
     {
         if (_showingFullScreen || !RewardedInterstitialReady) return;
@@ -339,18 +281,9 @@ public class AdManager : MonoBehaviour
         FixEditorPlaceholders();
     }
 
-    // =========================================================
-    // PLACEHOLDERS DEL EDITOR — normalización
-    // =========================================================
-    // Los prefabs de placeholder del plugin (PlaceholderAds/*) vienen con
-    // sortingOrder 0 y un escalado pensado para teléfonos verticales:
-    //  - quedan DEBAJO de nuestra UI runtime (sorting 300-500), que además
-    //    bloquea el touch → no se puede tocar el botón de cerrar;
-    //  - en Game view horizontal el layout puede desbordar la pantalla.
-    // En cada Show() los subimos arriba de todo y les ponemos escalado
-    // "Expand" (el área de referencia entra SIEMPRE completa en pantalla,
-    // así el botón de cerrar nunca queda afuera).
-    // Solo compila/corre en el editor — en el build no existe nada de esto.
+    // los placeholders del plugin vienen con sorting 0 y layout de celu
+    // vertical: quedan tapados por nuestra UI y el boton de cerrar puede
+    // caer afuera. Los subimos y les ponemos escalado Expand.
 
     [System.Diagnostics.Conditional("UNITY_EDITOR")]
     private void FixEditorPlaceholders()
@@ -360,8 +293,7 @@ public class AdManager : MonoBehaviour
 
     private System.Collections.IEnumerator FixEditorPlaceholdersRoutine()
     {
-        // El prefab se instancia durante Show(); insistimos unos frames
-        // por si la instanciación llega un toque después.
+        // el prefab tarda unos frames en aparecer, insistimos un rato
         for (int i = 0; i < 5; i++)
         {
             foreach (var canvas in FindObjectsByType<Canvas>(
@@ -376,10 +308,10 @@ public class AdManager : MonoBehaviour
 
                 if (!fullScreenAd && !bannerAd) continue;
 
-                // Encima de toda nuestra UI (max de Unity: 32767)
+                // arriba de toda nuestra UI (32767 es el maximo)
                 canvas.sortingOrder = 32000;
 
-                // Solo los full-screen necesitan arreglo de escalado
+                // solo los full-screen necesitan el arreglo de escalado
                 if (fullScreenAd)
                 {
                     var scaler = canvas.GetComponent<UnityEngine.UI.CanvasScaler>();
@@ -395,10 +327,6 @@ public class AdManager : MonoBehaviour
             yield return null;
         }
     }
-
-    // =========================================================
-    // HELPERS ESTÁTICOS (null-safe para los llamadores)
-    // =========================================================
 
     public static void Interstitial(Action onClosed)
     {

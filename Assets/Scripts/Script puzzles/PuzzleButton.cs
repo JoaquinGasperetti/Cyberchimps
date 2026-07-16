@@ -1,20 +1,6 @@
 using UnityEngine;
 using Unity.Netcode;
 
-/// <summary>
-/// Botón de puzzle sincronizado en red.
-///
-/// Activado por: Player (tag "Player") o GrabbableObject (tag "Box")
-/// Cuando todos los botones de la puerta están activos simultáneamente → puerta se abre.
-///
-/// SETUP:
-///   - NetworkObject ✓
-///   - Collider con Is Trigger ✓
-///   - Tag del Player: "Player"
-///   - Tag de cajas lanzables: "Box"
-///   - Asignar referencia a PuzzleDoor en el Inspector
-///   - Opcional: asignar pressMesh y releaseMesh para feedback visual
-/// </summary>
 public class PuzzleButton : NetworkBehaviour
 {
     [Header("Referencia")]
@@ -22,12 +8,10 @@ public class PuzzleButton : NetworkBehaviour
     [SerializeField] private PuzzleDoor door;
 
     [Header("Feedback visual (opcional)")]
-    [SerializeField] private GameObject pressedVisual;   // estado presionado
-    [SerializeField] private GameObject releasedVisual;  // estado suelto
+    [SerializeField] private GameObject pressedVisual;
+    [SerializeField] private GameObject releasedVisual;
 
-    // Cuántos activadores están encima del botón (Player o Box)
-    // Usamos un contador en lugar de bool para manejar el caso donde
-    // tanto un jugador como una caja están sobre el mismo botón.
+    // contador en vez de bool: pueden estar el jugador y una caja a la vez
     private NetworkVariable<int> activatorCount = new NetworkVariable<int>(
         0,
         NetworkVariableReadPermission.Everyone,
@@ -35,10 +19,6 @@ public class PuzzleButton : NetworkBehaviour
     );
 
     public bool IsPressed => activatorCount.Value > 0;
-
-    // =========================================================
-    // INIT
-    // =========================================================
 
     public override void OnNetworkSpawn()
     {
@@ -55,15 +35,9 @@ public class PuzzleButton : NetworkBehaviour
     {
         UpdateVisual(current > 0);
 
-        // Notificar a la puerta en todos los clientes
-        // (la puerta evalúa su estado internamente)
+        // avisar a la puerta en todos los clientes
         door?.EvaluateButtons();
     }
-
-    // =========================================================
-    // TRIGGER — detecta Player y Box
-    // Solo se procesa en el servidor para evitar duplicados.
-    // =========================================================
 
     private void OnTriggerEnter(Collider other)
     {
@@ -85,10 +59,6 @@ public class PuzzleButton : NetworkBehaviour
     {
         return other.CompareTag("Player") || other.CompareTag("Box");
     }
-
-    // =========================================================
-    // VISUAL
-    // =========================================================
 
     private void UpdateVisual(bool pressed)
     {

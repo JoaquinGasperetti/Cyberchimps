@@ -1,27 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// Actualiza todos los parámetros del Animator del jugador.
-///
-/// PARÁMETROS REQUERIDOS EN EL ANIMATOR:
-///   Float  "Speed"               → velocidad horizontal (Locomotion blend tree)
-///   Float  "YVelocity"           → velocidad vertical (salto/caída)
-///   Float  "PushSpeed"           → 0 = parado empujando / 1 = moviendo la roca
-///   Bool   "IsGrounded"          → true = en el suelo
-///   Bool   "IsPushing"           → true = en modo empujar
-///   Bool   "estaSosteniendoCaja" → true = sosteniendo objeto agarrable
-///
-/// BLEND TREE "Pushing" — configuración recomendada:
-///   Tipo: 1D
-///   Parámetro: PushSpeed   ← CAMBIAR de Speed a PushSpeed
-///   Motion 0 (threshold 0): Male Action Pose  (pose estática empujando)
-///   Motion 1 (threshold 1): Pushing           (animación de empuje en movimiento)
-///
-/// De esta forma:
-///   PushSpeed = 0 → pose de empuje estática (jugador apoya pero no mueve la roca)
-///   PushSpeed = 1 → animación de pasos empujando
-/// </summary>
 [RequireComponent(typeof(Animator))]
 public class PlayerAnimatorController : NetworkBehaviour
 {
@@ -42,12 +21,8 @@ public class PlayerAnimatorController : NetworkBehaviour
 
     private Vector3 previousPosition;
 
-    // Cache del pushable empujado por este jugador cuando es remoto
+    // cache del pushable que empuja este jugador cuando es remoto
     private PushableObject remotePushable;
-
-    // =========================================================
-    // INIT
-    // =========================================================
 
     private void Awake()
     {
@@ -62,10 +37,6 @@ public class PlayerAnimatorController : NetworkBehaviour
         previousPosition = transform.position;
     }
 
-    // =========================================================
-    // UPDATE
-    // =========================================================
-
     private void Update()
     {
         if (animator == null) return;
@@ -75,8 +46,6 @@ public class PlayerAnimatorController : NetworkBehaviour
         UpdatePushing();
         UpdateHolding();
     }
-
-    // ── Velocidad de locomoción ───────────────────────────────────────────
 
     private void UpdateLocomotion()
     {
@@ -94,15 +63,11 @@ public class PlayerAnimatorController : NetworkBehaviour
         animator.SetFloat(YVelocityHash, vel.y);
     }
 
-    // ── IsGrounded ────────────────────────────────────────────────────────
-
     private void UpdateGrounded()
     {
         bool grounded = playerController != null && playerController.IsGrounded;
         animator.SetBool(IsGroundedHash, grounded);
     }
-
-    // ── Pushing + PushSpeed ───────────────────────────────────────────────
 
     private void UpdatePushing()
     {
@@ -111,12 +76,10 @@ public class PlayerAnimatorController : NetworkBehaviour
 
         if (!pushing)
         {
-            // Fuera de modo empujar: resetear PushSpeed suavemente a 0
             animator.SetFloat(PushSpeedHash, 0f, pushSpeedDampTime, Time.deltaTime);
             return;
         }
 
-        // Obtener PushSpeed desde el PushableObject que se está empujando
         float pushSpeed = 0f;
 
         if (interactor != null && interactor.ActivePushable != null)
@@ -125,8 +88,8 @@ public class PlayerAnimatorController : NetworkBehaviour
         }
         else
         {
-            // Jugador REMOTO: ActivePushable solo existe en el dueño, así que
-            // buscamos el pushable cuyo pusher sea este jugador (se cachea).
+            // en el remoto ActivePushable es null: buscamos el pushable que
+            // este empujando este jugador
             if (remotePushable == null || remotePushable.PusherClientId != OwnerClientId)
                 remotePushable = FindPushableBy(OwnerClientId);
 
@@ -146,8 +109,6 @@ public class PlayerAnimatorController : NetworkBehaviour
         }
         return null;
     }
-
-    // ── Holding (objeto agarrado) ─────────────────────────────────────────
 
     private void UpdateHolding()
     {

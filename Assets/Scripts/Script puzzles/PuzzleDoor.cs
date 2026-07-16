@@ -2,19 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-/// <summary>
-/// Puerta de puzzle sincronizada en red.
-///
-/// Se abre cuando TODOS los botones de su lista están presionados al mismo tiempo.
-/// Una vez abierta, permanece abierta (puzzle resuelto).
-///
-/// SETUP:
-///   - NetworkObject ✓
-///   - Asignar doorMesh: el Transform del mesh que se mueve (hijo de la puerta)
-///   - Asignar openPosition y closedPosition como posiciones locales del doorMesh
-///   - Asignar la lista de PuzzleButtons en el Inspector
-///   - Este script no necesita que los botones sean hijos — pueden estar en cualquier lugar
-/// </summary>
 public class PuzzleDoor : NetworkBehaviour
 {
     [Header("Botones requeridos")]
@@ -27,7 +14,7 @@ public class PuzzleDoor : NetworkBehaviour
     [SerializeField] private Vector3 closedPosition;
     [SerializeField] private float moveSpeed = 2f;
 
-    // Una vez abierta, no se vuelve a cerrar (puzzle resuelto permanentemente)
+    // una vez abierta queda abierta
     private NetworkVariable<bool> isSolved = new NetworkVariable<bool>(
         false,
         NetworkVariableReadPermission.Everyone,
@@ -35,10 +22,6 @@ public class PuzzleDoor : NetworkBehaviour
     );
 
     private Vector3 targetPosition;
-
-    // =========================================================
-    // INIT
-    // =========================================================
 
     public override void OnNetworkSpawn()
     {
@@ -57,10 +40,6 @@ public class PuzzleDoor : NetworkBehaviour
             targetPosition = openPosition;
     }
 
-    // =========================================================
-    // UPDATE — mover la puerta suavemente en todos los clientes
-    // =========================================================
-
     private void Update()
     {
         if (doorMesh == null) return;
@@ -72,20 +51,14 @@ public class PuzzleDoor : NetworkBehaviour
         );
     }
 
-    // =========================================================
-    // EVALUACIÓN — llamado por cada PuzzleButton cuando cambia su estado
-    // Solo corre en el servidor.
-    // =========================================================
-
     public void EvaluateButtons()
     {
         if (!IsServer) return;
         if (isSolved.Value) return; // ya resuelto, ignorar
 
-        // Verificar que haya al menos un botón configurado
         if (requiredButtons.Count == 0) return;
 
-        // Todos los botones deben estar presionados simultáneamente
+        // tienen que estar todos presionados a la vez
         bool allPressed = true;
         foreach (PuzzleButton button in requiredButtons)
         {
@@ -101,23 +74,15 @@ public class PuzzleDoor : NetworkBehaviour
             isSolved.Value = true;
             targetPosition = openPosition;
         }
-        // Si no están todos presionados y no está resuelta, la puerta permanece cerrada.
-        // No se cierra si se resuelve — isSolved es permanente.
     }
-
-    // =========================================================
-    // GIZMOS — visualizar posiciones open/closed en el editor
-    // =========================================================
 
     private void OnDrawGizmosSelected()
     {
         if (doorMesh == null) return;
 
-        // Posición abierta en verde
         Gizmos.color = Color.green;
         Gizmos.DrawWireCube(transform.TransformPoint(openPosition), Vector3.one * 0.3f);
 
-        // Posición cerrada en rojo
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(transform.TransformPoint(closedPosition), Vector3.one * 0.3f);
     }
