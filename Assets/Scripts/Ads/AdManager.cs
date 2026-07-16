@@ -9,11 +9,23 @@ public class AdManager : MonoBehaviour
 {
     public static AdManager Instance { get; private set; }
 
-    private const string AppOpenId             = "ca-app-pub-2266949018056491/4808218513";
-    private const string BannerId              = "ca-app-pub-2266949018056491/6464116356";
-    private const string InterstitialId        = "ca-app-pub-2266949018056491/1196276561";
-    private const string RewardedId            = "ca-app-pub-2266949018056491/3322947690";
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    // IDs de prueba de Google. Google pide si o si usar anuncios de prueba
+    // mientras se desarrolla: si tocas anuncios reales te pueden marcar la
+    // cuenta por actividad invalida. Un build normal (sin Development Build)
+    // usa los IDs de abajo.
+    private const string AppOpenId              = "ca-app-pub-3940256099942544/9257395921";
+    private const string BannerId               = "ca-app-pub-3940256099942544/6300978111";
+    private const string InterstitialId         = "ca-app-pub-3940256099942544/1033173712";
+    private const string RewardedId             = "ca-app-pub-3940256099942544/5224354917";
+    private const string RewardedInterstitialId = "ca-app-pub-3940256099942544/5354046379";
+#else
+    private const string AppOpenId              = "ca-app-pub-2266949018056491/4808218513";
+    private const string BannerId               = "ca-app-pub-2266949018056491/6464116356";
+    private const string InterstitialId         = "ca-app-pub-2266949018056491/1196276561";
+    private const string RewardedId             = "ca-app-pub-2266949018056491/3322947690";
     private const string RewardedInterstitialId = "ca-app-pub-2266949018056491/3837953016";
+#endif
 
     // en estas escenas va el banner y el app open; en los niveles no
     private static readonly HashSet<string> MenuScenes =
@@ -24,6 +36,7 @@ public class AdManager : MonoBehaviour
     private bool _initialized;
     private bool _showingFullScreen;
     private bool _wasBackgrounded;
+    private bool _appOpenPendingOnLaunch;
     private float _lastInterstitialTime = -999f;
 
     private BannerView _banner;
@@ -95,13 +108,15 @@ public class AdManager : MonoBehaviour
         {
             _initialized = true;
 
+            // el app open tarda en cargar: se muestra cuando termine, no aca
+            _appOpenPendingOnLaunch = true;
+
             LoadAppOpen();
             LoadInterstitial();
             LoadRewarded();
             LoadRewardedInterstitial();
 
             RefreshBanner(SceneManager.GetActiveScene().name);
-            ShowAppOpenIfReady();
         });
     }
 
@@ -147,6 +162,13 @@ public class AdManager : MonoBehaviour
             ad.OnAdFullScreenContentOpened += () => _showingFullScreen = true;
             ad.OnAdFullScreenContentClosed += () => { _showingFullScreen = false; LoadAppOpen(); };
             ad.OnAdFullScreenContentFailed += _ => { _showingFullScreen = false; LoadAppOpen(); };
+
+            // recien ahora esta listo: si es el arranque, va el de apertura
+            if (_appOpenPendingOnLaunch)
+            {
+                _appOpenPendingOnLaunch = false;
+                ShowAppOpenIfReady();
+            }
         });
     }
 
@@ -194,12 +216,27 @@ public class AdManager : MonoBehaviour
             if (error != null || ad == null) return;
             _interstitial = ad;
             ad.OnAdFullScreenContentOpened += () => _showingFullScreen = true;
-            ad.OnAdFullScreenContentClosed += () => { _showingFullScreen = false; LoadInterstitial(); };
-            ad.OnAdFullScreenContentFailed += _ => { _showingFullScreen = false; LoadInterstitial(); };
+            ad.OnAdFullScreenContentClosed += HandleInterstitialFinished;
+            ad.OnAdFullScreenContentFailed += _ => HandleInterstitialFinished();
         });
     }
 
     private Action _onInterstitialClosed;
+
+    // Un solo handler para el cierre: primero avisamos al que pidio el anuncio
+    // (asi sigue la transicion) y recien despues recargamos. Con dos handlers
+    // separados el reload dejaba _interstitial en null y el otro explotaba,
+    // y la transicion no llegaba a ejecutarse nunca.
+    private void HandleInterstitialFinished()
+    {
+        _showingFullScreen = false;
+
+        var cb = _onInterstitialClosed;
+        _onInterstitialClosed = null;
+        cb?.Invoke();
+
+        LoadInterstitial();
+    }
 
     public void ShowInterstitial(Action onClosed = null)
     {
@@ -212,19 +249,6 @@ public class AdManager : MonoBehaviour
 
         _lastInterstitialTime = Time.unscaledTime;
         _onInterstitialClosed = onClosed;
-
-        void Fire()
-        {
-            _interstitial.OnAdFullScreenContentClosed -= Fire;
-            var cb = _onInterstitialClosed; _onInterstitialClosed = null;
-            cb?.Invoke();
-        }
-        _interstitial.OnAdFullScreenContentClosed += Fire;
-        _interstitial.OnAdFullScreenContentFailed += _ =>
-        {
-            var cb = _onInterstitialClosed; _onInterstitialClosed = null;
-            cb?.Invoke();
-        };
         _interstitial.Show();
         FixEditorPlaceholders();
     }
@@ -308,8 +332,9 @@ public class AdManager : MonoBehaviour
 
                 if (!fullScreenAd && !bannerAd) continue;
 
-                // arriba de toda nuestra UI (32767 es el maximo)
-                canvas.sortingOrder = 32000;
+                // arriba de toda nuestra UI. Algunos prefabs ya vienen en 32767
+                // y otros en 0 (el app open horizontal, por ejemplo): solo subimos.
+                canvas.sortingOrder = Mathf.Max(canvas.sortingOrder, 32000);
 
                 // solo los full-screen necesitan el arreglo de escalado
                 if (fullScreenAd)
