@@ -42,6 +42,7 @@ public class AdManager : MonoBehaviour
     private static readonly List<string> TestDeviceIds = new List<string>();
 
     private bool _initialized;
+    private bool _initResolved; // el arranque (UMP + SDK) ya termino, bien o mal
     private bool _showingFullScreen;
     private bool _wasBackgrounded;
     private bool _appOpenPendingOnLaunch;
@@ -60,13 +61,22 @@ public class AdManager : MonoBehaviour
     private AppOpenAd _appOpen;
     private DateTime _appOpenExpire;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void Bootstrap()
+    // para que la escena Init sepa cuando puede seguir al menu
+    public static bool InitResolved => Instance != null && Instance._initResolved;
+
+    public static void EnsureCreated()
     {
         if (Instance != null) return;
         var go = new GameObject("AdManager");
         go.AddComponent<AdManager>();
     }
+
+#if UNITY_EDITOR
+    // en el build lo crea la escena Init; esto es solo para poder darle
+    // Play a cualquier escena directo en el editor sin pasar por Init
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void Bootstrap() => EnsureCreated();
+#endif
 
     private void Awake()
     {
@@ -106,14 +116,19 @@ public class AdManager : MonoBehaviour
                     Debug.LogWarning($"[AdManager] UMP form: {formError.Message}");
 
                 if (ConsentInformation.CanRequestAds())
+                {
                     InitializeAds();
+                }
                 else
+                {
                     // aca no hay anuncios posibles: pasa si el usuario esta en
                     // una region con consentimiento obligatorio y el mensaje
                     // GDPR no esta publicado en la consola de AdMob
+                    _initResolved = true;
                     Debug.LogError("[AdManager] UMP: no se pueden pedir anuncios " +
                         $"(ConsentStatus={ConsentInformation.ConsentStatus}). " +
                         "Revisa que el mensaje de consentimiento este publicado en AdMob.");
+                }
             });
         });
 #endif
@@ -129,6 +144,7 @@ public class AdManager : MonoBehaviour
         MobileAds.Initialize(initStatus =>
         {
             _initialized = true;
+            _initResolved = true;
 
             foreach (var kv in initStatus.getAdapterStatusMap())
                 Debug.Log($"[AdManager] Adapter {kv.Key}: {kv.Value.InitializationState} ({kv.Value.Description})");
@@ -153,6 +169,14 @@ public class AdManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         RefreshBanner(scene.name);
+
+        // el de apertura pudo terminar de cargar durante la escena Init:
+        // se muestra al llegar al primer menu
+        if (_appOpenPendingOnLaunch && MenuScenes.Contains(scene.name) && AppOpenReady)
+        {
+            _appOpenPendingOnLaunch = false;
+            ShowAppOpenIfReady();
+        }
     }
 
     private static bool CurrentIsMenu()
@@ -215,8 +239,10 @@ public class AdManager : MonoBehaviour
                 LoadAppOpen();
             };
 
-            // recien ahora esta listo: si es el arranque, va el de apertura
-            if (_appOpenPendingOnLaunch)
+            // recien ahora esta listo: si es el arranque y ya estamos en un
+            // menu, va el de apertura. Si seguimos en la escena Init queda
+            // pendiente y lo dispara OnSceneLoaded al llegar al primer menu.
+            if (_appOpenPendingOnLaunch && CurrentIsMenu())
             {
                 _appOpenPendingOnLaunch = false;
                 ShowAppOpenIfReady();
