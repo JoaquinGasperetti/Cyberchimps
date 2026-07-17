@@ -32,12 +32,26 @@ public class AdManager : MonoBehaviour
         new HashSet<string> { "MainMenu", "Lobby", "LevelSelect" };
 
     private const float InterstitialMinInterval = 45f; // segundos entre interstitials
+    private const float MaxRetryDelay = 64f; // tope del backoff al reintentar cargas
+
+    // Para probar los IDs REALES en un celu fisico sin riesgo de actividad
+    // invalida: corre el juego una vez en el dispositivo, busca en logcat la
+    // linea que dice "RequestConfiguration.Builder.setTestDeviceIds" y pega
+    // aca el hash que muestra. AdMob pasa a servir anuncios de prueba sobre
+    // los ad units reales solo en ese dispositivo.
+    private static readonly List<string> TestDeviceIds = new List<string>();
 
     private bool _initialized;
     private bool _showingFullScreen;
     private bool _wasBackgrounded;
     private bool _appOpenPendingOnLaunch;
     private float _lastInterstitialTime = -999f;
+
+    private int _appOpenRetries;
+    private int _interstitialRetries;
+    private int _rewardedRetries;
+    private int _rewardedInterstitialRetries;
+    private int _bannerRetries;
 
     private BannerView _banner;
     private InterstitialAd _interstitial;
@@ -81,7 +95,7 @@ public class AdManager : MonoBehaviour
             if (updateError != null)
             {
                 // si falla seguimos igual, fuera de Europa el formulario no es obligatorio
-                Debug.LogWarning($"[AdManager] UMP update: {updateError.Message}");
+                Debug.LogWarning($"[AdManager] UMP update fallo ({updateError.Message}) — inicializamos igual.");
                 InitializeAds();
                 return;
             }
@@ -94,7 +108,12 @@ public class AdManager : MonoBehaviour
                 if (ConsentInformation.CanRequestAds())
                     InitializeAds();
                 else
-                    Debug.Log("[AdManager] Sin consentimiento para anuncios — no se inicializa el SDK.");
+                    // aca no hay anuncios posibles: pasa si el usuario esta en
+                    // una region con consentimiento obligatorio y el mensaje
+                    // GDPR no esta publicado en la consola de AdMob
+                    Debug.LogError("[AdManager] UMP: no se pueden pedir anuncios " +
+                        $"(ConsentStatus={ConsentInformation.ConsentStatus}). " +
+                        "Revisa que el mensaje de consentimiento este publicado en AdMob.");
             });
         });
 #endif
@@ -104,9 +123,15 @@ public class AdManager : MonoBehaviour
     {
         if (_initialized) return;
 
-        MobileAds.Initialize(_ =>
+        if (TestDeviceIds.Count > 0)
+            MobileAds.SetRequestConfiguration(new RequestConfiguration { TestDeviceIds = TestDeviceIds });
+
+        MobileAds.Initialize(initStatus =>
         {
             _initialized = true;
+
+            foreach (var kv in initStatus.getAdapterStatusMap())
+                Debug.Log($"[AdManager] Adapter {kv.Key}: {kv.Value.InitializationState} ({kv.Value.Description})");
 
             // el app open tarda en cargar: se muestra cuando termine, no aca
             _appOpenPendingOnLaunch = true;
@@ -135,7 +160,23 @@ public class AdManager : MonoBehaviour
 
     private void OnApplicationPause(bool paused)
     {
-        if (paused) _wasBackgrounded = true;
+        // un anuncio fullscreen tambien pausa la app: eso no cuenta como ir a
+        // segundo plano, si no al cerrarlo saltaba un app open encima
+        if (paused && !_showingFullScreen) _wasBackgrounded = true;
+    }
+
+    // en dispositivo real es normal que una carga falle (red, no-fill);
+    // sin reintento el formato quedaba muerto para toda la sesion
+    private void RetryLoad(int attempt, Action reload)
+    {
+        float delay = Mathf.Min(Mathf.Pow(2f, attempt), MaxRetryDelay);
+        StartCoroutine(RetryLoadRoutine(delay, reload));
+    }
+
+    private System.Collections.IEnumerator RetryLoadRoutine(float delay, Action reload)
+    {
+        yield return new WaitForSecondsRealtime(delay);
+        reload();
     }
 
     private void OnApplicationFocus(bool hasFocus)
@@ -156,12 +197,23 @@ public class AdManager : MonoBehaviour
 
         AppOpenAd.Load(AppOpenId, new AdRequest(), (AppOpenAd ad, LoadAdError error) =>
         {
-            if (error != null || ad == null) return;
+            if (error != null || ad == null)
+            {
+                Debug.LogError($"[AdManager] AppOpen no cargo: {error}");
+                RetryLoad(++_appOpenRetries, LoadAppOpen);
+                return;
+            }
+            _appOpenRetries = 0;
             _appOpen = ad;
             _appOpenExpire = DateTime.Now + TimeSpan.FromHours(4); // vencen a las 4 horas
             ad.OnAdFullScreenContentOpened += () => _showingFullScreen = true;
             ad.OnAdFullScreenContentClosed += () => { _showingFullScreen = false; LoadAppOpen(); };
-            ad.OnAdFullScreenContentFailed += _ => { _showingFullScreen = false; LoadAppOpen(); };
+            ad.OnAdFullScreenContentFailed += err =>
+            {
+                Debug.LogError($"[AdManager] AppOpen no se pudo mostrar: {err}");
+                _showingFullScreen = false;
+                LoadAppOpen();
+            };
 
             // recien ahora esta listo: si es el arranque, va el de apertura
             if (_appOpenPendingOnLaunch)
@@ -194,6 +246,13 @@ public class AdManager : MonoBehaviour
         if (_banner != null) { _banner.Show(); return; }
 
         _banner = new BannerView(BannerId, AdSize.Banner, AdPosition.Bottom);
+        _banner.OnBannerAdLoaded += () => _bannerRetries = 0;
+        _banner.OnBannerAdLoadFailed += error =>
+        {
+            Debug.LogError($"[AdManager] Banner no cargo: {error}");
+            DestroyBanner();
+            RetryLoad(++_bannerRetries, () => { if (CurrentIsMenu()) ShowBanner(); });
+        };
         _banner.LoadAd(new AdRequest());
         FixEditorPlaceholders();
     }
@@ -213,11 +272,21 @@ public class AdManager : MonoBehaviour
 
         InterstitialAd.Load(InterstitialId, new AdRequest(), (InterstitialAd ad, LoadAdError error) =>
         {
-            if (error != null || ad == null) return;
+            if (error != null || ad == null)
+            {
+                Debug.LogError($"[AdManager] Interstitial no cargo: {error}");
+                RetryLoad(++_interstitialRetries, LoadInterstitial);
+                return;
+            }
+            _interstitialRetries = 0;
             _interstitial = ad;
             ad.OnAdFullScreenContentOpened += () => _showingFullScreen = true;
             ad.OnAdFullScreenContentClosed += HandleInterstitialFinished;
-            ad.OnAdFullScreenContentFailed += _ => HandleInterstitialFinished();
+            ad.OnAdFullScreenContentFailed += err =>
+            {
+                Debug.LogError($"[AdManager] Interstitial no se pudo mostrar: {err}");
+                HandleInterstitialFinished();
+            };
         });
     }
 
@@ -261,11 +330,22 @@ public class AdManager : MonoBehaviour
 
         RewardedAd.Load(RewardedId, new AdRequest(), (RewardedAd ad, LoadAdError error) =>
         {
-            if (error != null || ad == null) return;
+            if (error != null || ad == null)
+            {
+                Debug.LogError($"[AdManager] Rewarded no cargo: {error}");
+                RetryLoad(++_rewardedRetries, LoadRewarded);
+                return;
+            }
+            _rewardedRetries = 0;
             _rewarded = ad;
             ad.OnAdFullScreenContentOpened += () => _showingFullScreen = true;
             ad.OnAdFullScreenContentClosed += () => { _showingFullScreen = false; LoadRewarded(); };
-            ad.OnAdFullScreenContentFailed += _ => { _showingFullScreen = false; LoadRewarded(); };
+            ad.OnAdFullScreenContentFailed += err =>
+            {
+                Debug.LogError($"[AdManager] Rewarded no se pudo mostrar: {err}");
+                _showingFullScreen = false;
+                LoadRewarded();
+            };
         });
     }
 
@@ -287,11 +367,22 @@ public class AdManager : MonoBehaviour
         RewardedInterstitialAd.Load(RewardedInterstitialId, new AdRequest(),
             (RewardedInterstitialAd ad, LoadAdError error) =>
             {
-                if (error != null || ad == null) return;
+                if (error != null || ad == null)
+                {
+                    Debug.LogError($"[AdManager] RewardedInterstitial no cargo: {error}");
+                    RetryLoad(++_rewardedInterstitialRetries, LoadRewardedInterstitial);
+                    return;
+                }
+                _rewardedInterstitialRetries = 0;
                 _rewardedInterstitial = ad;
                 ad.OnAdFullScreenContentOpened += () => _showingFullScreen = true;
                 ad.OnAdFullScreenContentClosed += () => { _showingFullScreen = false; LoadRewardedInterstitial(); };
-                ad.OnAdFullScreenContentFailed += _ => { _showingFullScreen = false; LoadRewardedInterstitial(); };
+                ad.OnAdFullScreenContentFailed += err =>
+                {
+                    Debug.LogError($"[AdManager] RewardedInterstitial no se pudo mostrar: {err}");
+                    _showingFullScreen = false;
+                    LoadRewardedInterstitial();
+                };
             });
     }
 
