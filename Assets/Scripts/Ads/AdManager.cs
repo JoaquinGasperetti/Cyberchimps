@@ -41,7 +41,8 @@ public class AdManager : MonoBehaviour
     // los ad units reales solo en ese dispositivo.
     private static readonly List<string> TestDeviceIds = new List<string>();
 
-    private bool _initialized;
+    private bool _initStarted;  // ya se llamo a MobileAds.Initialize
+    private bool _initialized;  // el SDK contesto que esta listo
     private bool _initResolved; // el arranque (UMP + SDK) ya termino, bien o mal
     private bool _showingFullScreen;
     private bool _wasBackgrounded;
@@ -71,12 +72,11 @@ public class AdManager : MonoBehaviour
         go.AddComponent<AdManager>();
     }
 
-#if UNITY_EDITOR
-    // en el build lo crea la escena Init; esto es solo para poder darle
-    // Play a cualquier escena directo en el editor sin pasar por Init
+    // Se crea siempre, en cualquier plataforma y sin depender de la escena
+    // Init: si alguna vez se arranca en otra escena (o Init cambia), igual
+    // hay anuncios. EnsureCreated es idempotente.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap() => EnsureCreated();
-#endif
 
     private void Awake()
     {
@@ -98,45 +98,99 @@ public class AdManager : MonoBehaviour
         // muestra sus anuncios de mentira (placeholders)
         InitializeAds();
 #else
+        // Red de seguridad: pase lo que pase con UMP, el SDK se inicializa.
+        // Sin esto, cualquier excepcion o callback que nunca vuelve dejaba la
+        // app publicada sin un solo anuncio, y en el editor no se notaba
+        // porque esta rama ni corre.
+        StartCoroutine(InitWatchdog());
+
+        try
+        {
+            RequestConsentThenInitialize();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[AdManager] UMP tiro excepcion ({e.Message}) — inicializamos igual.");
+            InitializeAds();
+        }
+#endif
+    }
+
+#if !UNITY_EDITOR
+    private void RequestConsentThenInitialize()
+    {
         // consentimiento UMP: si hace falta se muestra el formulario
         // antes de inicializar el SDK
         ConsentInformation.Update(new ConsentRequestParameters(), updateError =>
         {
-            if (updateError != null)
+            try
             {
-                // si falla seguimos igual, fuera de Europa el formulario no es obligatorio
-                Debug.LogWarning($"[AdManager] UMP update fallo ({updateError.Message}) — inicializamos igual.");
-                InitializeAds();
-                return;
-            }
-
-            ConsentForm.LoadAndShowConsentFormIfRequired(formError =>
-            {
-                if (formError != null)
-                    Debug.LogWarning($"[AdManager] UMP form: {formError.Message}");
-
-                if (ConsentInformation.CanRequestAds())
+                if (updateError != null)
                 {
+                    // si falla seguimos igual, fuera de Europa el formulario no es obligatorio
+                    Debug.LogWarning($"[AdManager] UMP update fallo ({updateError.Message}) — inicializamos igual.");
                     InitializeAds();
+                    return;
                 }
-                else
+
+                ConsentForm.LoadAndShowConsentFormIfRequired(formError =>
                 {
-                    // aca no hay anuncios posibles: pasa si el usuario esta en
-                    // una region con consentimiento obligatorio y el mensaje
-                    // GDPR no esta publicado en la consola de AdMob
-                    _initResolved = true;
-                    Debug.LogError("[AdManager] UMP: no se pueden pedir anuncios " +
-                        $"(ConsentStatus={ConsentInformation.ConsentStatus}). " +
-                        "Revisa que el mensaje de consentimiento este publicado en AdMob.");
-                }
-            });
+                    try
+                    {
+                        if (formError != null)
+                            Debug.LogWarning($"[AdManager] UMP form: {formError.Message}");
+
+                        if (ConsentInformation.CanRequestAds())
+                        {
+                            InitializeAds();
+                        }
+                        else
+                        {
+                            // aca no hay anuncios posibles: pasa si el usuario esta en
+                            // una region con consentimiento obligatorio y el mensaje
+                            // GDPR no esta publicado en la consola de AdMob
+                            _initResolved = true;
+                            Debug.LogError("[AdManager] UMP: no se pueden pedir anuncios " +
+                                $"(ConsentStatus={ConsentInformation.ConsentStatus}). " +
+                                "Revisa que el mensaje de consentimiento este publicado en AdMob.");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"[AdManager] UMP form callback fallo ({e.Message}) — inicializamos igual.");
+                        InitializeAds();
+                    }
+                });
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AdManager] UMP update callback fallo ({e.Message}) — inicializamos igual.");
+                InitializeAds();
+            }
         });
-#endif
     }
+
+    // si a los 8s UMP no contesto (sin red, formulario mal configurado, callback
+    // que nunca vuelve), arrancamos igual: sin consentimiento explicito el SDK
+    // sirve anuncios no personalizados, pero sirve.
+    private System.Collections.IEnumerator InitWatchdog()
+    {
+        yield return new WaitForSecondsRealtime(8f);
+
+        if (!_initStarted)
+        {
+            Debug.LogWarning("[AdManager] UMP no respondio en 8s — inicializando el SDK igual.");
+            InitializeAds();
+        }
+    }
+#endif
 
     private void InitializeAds()
     {
-        if (_initialized) return;
+        // _initialized recien se pone en true dentro del callback: sin este
+        // segundo guard, UMP y el watchdog podian llamar a Initialize dos veces
+        if (_initStarted) return;
+        _initStarted = true;
 
         if (TestDeviceIds.Count > 0)
             MobileAds.SetRequestConfiguration(new RequestConfiguration { TestDeviceIds = TestDeviceIds });

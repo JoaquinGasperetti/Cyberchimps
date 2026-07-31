@@ -15,8 +15,18 @@ public class InitFlow : MonoBehaviour
 
     private IEnumerator Start()
     {
-        PlayGamesManager.EnsureCreated();
+        // el AdManager va primero y aparte: si Play Games explota (sin Play
+        // Services, sin red) no queremos quedarnos sin anuncios
         AdManager.EnsureCreated();
+
+        try
+        {
+            PlayGamesManager.EnsureCreated();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[InitFlow] Play Games no arranco: {e.Message}");
+        }
 
         float deadline = Time.realtimeSinceStartup + MaxWait;
         while (Time.realtimeSinceStartup < deadline &&

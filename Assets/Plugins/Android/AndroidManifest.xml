@@ -7,7 +7,14 @@
         durante el merge de Gradle.-->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID"
                      tools:node="merge" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <application>
+        <!--App ID de AdMob. Tambien lo aporta el androidlib del plugin, pero
+            declararlo aca garantiza que quede en el manifest final: si falta,
+            el SDK aborta al inicializar y no se sirve ni un anuncio (en el
+            editor no se nota porque usa placeholders).-->
+        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID"
+                   android:value="ca-app-pub-2266949018056491~9616893306" />
         <!--Used when Application Entry is set to Activity, otherwise remove this activity block-->
         <activity android:name="com.unity3d.player.UnityPlayerActivity"
                   android:theme="@style/UnityThemeSelector">

@@ -20,8 +20,10 @@ public class NetworkLevelSelectorManager : MonoBehaviour
 
         bool isHost = NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost;
 
+        // el && respeta los botones que ya vienen deshabilitados de la escena
+        // (niveles todavia no creados): el host tampoco deberia poder tocarlos
         foreach (var btn in levelButtons)
-            btn.interactable = isHost;
+            btn.interactable = isHost && btn.interactable;
 
         if (labelStatus != null)
         {
@@ -36,6 +38,13 @@ public class NetworkLevelSelectorManager : MonoBehaviour
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsHost)
         {
             Debug.LogWarning("[NetworkLevelSelectorManager] Solo el host puede cargar niveles.");
+            return;
+        }
+
+        if (NetworkSceneLoader.Instance == null)
+        {
+            Debug.LogError("[NetworkLevelSelectorManager] No hay NetworkSceneLoader " +
+                           "(se crea en el Lobby). No se puede cargar el nivel.");
             return;
         }
 

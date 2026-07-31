@@ -20,6 +20,15 @@ public class MultiplayerUI : MonoBehaviour
 
     private void Start()
     {
+        // si a una escena le falta el Canvas del HUD estas refs quedan en null;
+        // antes eso tiraba NullReference y se caia el Start entero del nivel
+        if (buttonHost == null || buttonClient == null || buttonDisconnect == null)
+        {
+            Debug.LogError($"[MultiplayerUI] Faltan referencias de UI en la escena " +
+                           $"'{gameObject.scene.name}'. Revisa que este el prefab Canvas.");
+            return;
+        }
+
         buttonHost.onClick.AddListener(() => OnStartHost?.Invoke());
         buttonClient.onClick.AddListener(() => OnStartClient?.Invoke());
         buttonDisconnect.onClick.AddListener(() => OnDiconnectClient?.Invoke());
@@ -28,16 +37,16 @@ public class MultiplayerUI : MonoBehaviour
 
     public void DisableButtons()
     {
-        buttonHost.interactable       = false;
-        buttonClient.interactable     = false;
-        buttonDisconnect.interactable = true;
+        if (buttonHost != null)       buttonHost.interactable       = false;
+        if (buttonClient != null)     buttonClient.interactable     = false;
+        if (buttonDisconnect != null) buttonDisconnect.interactable = true;
     }
 
     public void EnableButtons()
     {
-        buttonHost.interactable       = true;
-        buttonClient.interactable     = true;
-        buttonDisconnect.interactable = false;
+        if (buttonHost != null)       buttonHost.interactable       = true;
+        if (buttonClient != null)     buttonClient.interactable     = true;
+        if (buttonDisconnect != null) buttonDisconnect.interactable = false;
     }
 
     public void ShowJoinCode(string code)
