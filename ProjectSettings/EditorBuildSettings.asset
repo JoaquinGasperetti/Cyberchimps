@@ -28,6 +28,9 @@ EditorBuildSettings:
     guid: a0c823e454586984c8b645f0b4e92c85
   - enabled: 1
     path: Assets/Scenes/Esqueleto de lvl 4.unity
+    guid: 674ee3ad3ed86b640941bb7f1417366f
+  - enabled: 1
+    path: Assets/Scenes/Esqueleto de lvl 5.unity
     guid: 221804c5ef660224da1b5e0aaa33126e
   - enabled: 1
     path: Assets/Scenes/OnlineTest.unity
