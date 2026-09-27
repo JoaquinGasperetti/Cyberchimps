@@ -28,7 +28,8 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private Sprite filledStar;
     [SerializeField] private Sprite emptyStar;
 
-    private bool levelCompleted;
+    // true si el nivel ya termino, sea por completarlo o porque se acabo el tiempo
+    private bool levelEnded;
     [SerializeField] private string levelSelectorScene = "LevelSelector";
 
     // cartel "En la meta: 1/2", generado en runtime
@@ -129,10 +130,19 @@ public class LevelManager : MonoBehaviour
 
     private void HandleTimeUp()
     {
+        // si el nivel ya termino (se completo justo antes, o llega dos veces
+        // por red) no mostramos el panel de tiempo agotado
+        if (levelEnded) return;
+
+        levelEnded = true;
+
         if (timerText != null)
             timerText.color = Color.red;
 
-        // aca iria la derrota por tiempo, si algun dia se suma
+        HideGoalProgress();
+        CanPlay = false;
+
+        TimeUpUI.Show(IsSceneAuthority(), RetryLevel, GoToLobby);
     }
 
     private void HandleBonusTimeAdded(float amount)
@@ -287,10 +297,10 @@ public class LevelManager : MonoBehaviour
 
     public void CompleteLevel(ulong[] statClientIds, int[] statCyberdata)
     {
-        if (levelCompleted)
+        if (levelEnded)
             return;
 
-        levelCompleted = true;
+        levelEnded = true;
 
         HideGoalProgress();
 
@@ -306,7 +316,7 @@ public class LevelManager : MonoBehaviour
 
     public void ShowGoalProgress(int current, int required)
     {
-        if (levelCompleted) return;
+        if (levelEnded) return;
 
         if (current <= 0)
         {
