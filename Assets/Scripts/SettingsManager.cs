@@ -5,6 +5,7 @@ public static class SettingsManager
     private const string KeyVolume = "opt_volume";
     private const string KeyQuality = "opt_quality";
     private const string KeyVibration = "opt_vibration";
+    private const string KeyNotifications = "opt_notifications";
 
     public static float Volume
     {
@@ -31,6 +32,14 @@ public static class SettingsManager
     {
         get => PlayerPrefs.GetInt(KeyVibration, 1) == 1;
         set => PlayerPrefs.SetInt(KeyVibration, value ? 1 : 0);
+    }
+
+    // arranca apagado: recien se pide permiso al sistema operativo cuando
+    // el jugador lo prende a mano desde Opciones (ver NotificationManager)
+    public static bool Notifications
+    {
+        get => PlayerPrefs.GetInt(KeyNotifications, 0) == 1;
+        set => PlayerPrefs.SetInt(KeyNotifications, value ? 1 : 0);
     }
 
     public static void Save() => PlayerPrefs.Save();

@@ -7,6 +7,7 @@ public class OptionsMenuUI : MonoBehaviour
 
     private TextMeshProUGUI qualityLabel;
     private TextMeshProUGUI vibrationLabel;
+    private TextMeshProUGUI notificationsLabel;
     private TextMeshProUGUI volumeValueLabel;
 
     public static void Show()
@@ -27,7 +28,7 @@ public class OptionsMenuUI : MonoBehaviour
     {
         SimpleUI.CreateOverlay(transform);
 
-        var panel = SimpleUI.CreatePanel(transform, new Vector2(760f, 660f));
+        var panel = SimpleUI.CreatePanel(transform, new Vector2(760f, 800f));
         Transform p = panel.transform;
 
         SimpleUI.CreateText(p, "Title", "OPCIONES", 62f,
@@ -67,8 +68,19 @@ public class OptionsMenuUI : MonoBehaviour
         vibrationLabel.fontSize = 30f;
         UpdateVibrationLabel();
 
+        SimpleUI.CreateText(p, "NotificationsTitle", "Notificaciones", 40f,
+            new Vector2(-160f, -190f), new Vector2(320f, 55f),
+            TextAlignmentOptions.Left);
+
+        var notificationsButton = SimpleUI.CreateButton(p, "NotificationsButton", "",
+            new Vector2(180f, -190f), new Vector2(280f, 70f),
+            SimpleUI.GreyButton, ToggleNotifications);
+        notificationsLabel = notificationsButton.GetComponentInChildren<TextMeshProUGUI>();
+        notificationsLabel.fontSize = 30f;
+        UpdateNotificationsLabel();
+
         SimpleUI.CreateButton(p, "ButtonClose", "Cerrar",
-            new Vector2(0f, -235f), new Vector2(460f, 90f),
+            new Vector2(0f, -330f), new Vector2(460f, 90f),
             SimpleUI.GreenButton, Close);
     }
 
@@ -92,6 +104,14 @@ public class OptionsMenuUI : MonoBehaviour
         UpdateVibrationLabel();
     }
 
+    private void ToggleNotifications()
+    {
+        // pasa por NotificationManager (no por SettingsManager directo):
+        // al prenderlo hay que pedirle permiso al sistema operativo
+        NotificationManager.SetEnabled(!SettingsManager.Notifications);
+        UpdateNotificationsLabel();
+    }
+
     private void Close()
     {
         SettingsManager.Save();
@@ -108,6 +128,12 @@ public class OptionsMenuUI : MonoBehaviour
     {
         if (vibrationLabel != null)
             vibrationLabel.text = SettingsManager.Vibration ? "Sí" : "No";
+    }
+
+    private void UpdateNotificationsLabel()
+    {
+        if (notificationsLabel != null)
+            notificationsLabel.text = SettingsManager.Notifications ? "Sí" : "No";
     }
 
     private static string FormatPercent(float value) =>
