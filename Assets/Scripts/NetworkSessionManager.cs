@@ -309,18 +309,33 @@ public class NetworkSessionManager : MonoBehaviour
         OnSessionStarted?.Invoke();
     }
 
+    // largo maximo del nombre en la lista, para que no rompa la UI
+    private const int MaxPlayerNameLength = 24;
+
     private static async Task<string> BuildSessionNameAsync()
     {
-        string playerName = null;
+        // 1) nombre de Play Juegos (el que el jugador ve en su perfil)
+        string playerName = PlayGamesManager.GetDisplayName();
 
-        try { playerName = await AuthenticationService.Instance.GetPlayerNameAsync(); }
-        catch { /* sin nombre: usamos uno generico */ }
+        // 2) si no hay sesion de Play Juegos (editor, sin red, sin la app): nombre de UGS
+        if (string.IsNullOrWhiteSpace(playerName))
+        {
+            try { playerName = await AuthenticationService.Instance.GetPlayerNameAsync(); }
+            catch { /* sin nombre: usamos uno generico */ }
 
+            // el nombre autogenerado de UGS viene como "Nombre#1234"
+            if (!string.IsNullOrEmpty(playerName))
+            {
+                int hash = playerName.IndexOf('#');
+                if (hash > 0) playerName = playerName.Substring(0, hash);
+            }
+        }
+
+        playerName = playerName?.Trim();
         if (string.IsNullOrEmpty(playerName)) return "Partida pública";
 
-        // el nombre autogenerado viene como "Nombre#1234"
-        int hash = playerName.IndexOf('#');
-        if (hash > 0) playerName = playerName.Substring(0, hash);
+        if (playerName.Length > MaxPlayerNameLength)
+            playerName = playerName.Substring(0, MaxPlayerNameLength).TrimEnd() + "…";
 
         return $"Partida de {playerName}";
     }

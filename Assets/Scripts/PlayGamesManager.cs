@@ -13,6 +13,9 @@ public class PlayGamesManager : MonoBehaviour
     public static bool SignInResolved { get; private set; }
     public static bool SignedIn { get; private set; }
 
+    // nombre de usuario de Play Juegos; vacio si no hay sesion iniciada
+    public static string DisplayName { get; private set; } = string.Empty;
+
     public static void EnsureCreated()
     {
         if (Instance != null) return;
@@ -49,11 +52,18 @@ public class PlayGamesManager : MonoBehaviour
         SignedIn = status == SignInStatus.Success;
 
         if (SignedIn)
-            Debug.Log($"[PlayGames] Sesion iniciada: {PlayGamesPlatform.Instance.GetUserDisplayName()}");
+        {
+            RefreshDisplayName();
+            Debug.Log($"[PlayGames] Sesion iniciada: {DisplayName}");
+        }
         else
+        {
+            DisplayName = string.Empty;
+
             // puede fallar sin perfil de Play Games, sin red o sin la app
             // de Play Juegos: queda ManualSignIn para reintentar con boton
             Debug.LogWarning($"[PlayGames] Sign-in automatico fallo: {status}");
+        }
     }
 #endif
 
@@ -64,10 +74,41 @@ public class PlayGamesManager : MonoBehaviour
         PlayGamesPlatform.Instance.ManuallyAuthenticate(status =>
         {
             SignedIn = status == SignInStatus.Success;
+
+            if (SignedIn) RefreshDisplayName();
+            else DisplayName = string.Empty;
+
             onDone?.Invoke(SignedIn);
         });
 #else
         onDone?.Invoke(false);
 #endif
     }
+
+    // Devuelve el nombre de Play Juegos (o "" si no hay sesion / no hay nombre).
+    // Si por algun motivo no quedo guardado al iniciar sesion, lo vuelve a pedir.
+    public static string GetDisplayName()
+    {
+#if UNITY_ANDROID && !UNITY_EDITOR
+        if (SignedIn && string.IsNullOrWhiteSpace(DisplayName))
+            RefreshDisplayName();
+#endif
+        return DisplayName ?? string.Empty;
+    }
+
+#if UNITY_ANDROID && !UNITY_EDITOR
+    private static void RefreshDisplayName()
+    {
+        try
+        {
+            // GetUserDisplayName tira excepcion si todavia no hay autenticacion
+            if (PlayGamesPlatform.Instance != null && PlayGamesPlatform.Instance.IsAuthenticated())
+                DisplayName = (PlayGamesPlatform.Instance.GetUserDisplayName() ?? string.Empty).Trim();
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[PlayGames] No se pudo leer el nombre de usuario: {e.Message}");
+        }
+    }
+#endif
 }
